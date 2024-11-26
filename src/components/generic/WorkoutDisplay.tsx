@@ -1,6 +1,13 @@
 import styled from 'styled-components';
+import { Timer } from '../../utils/context';
+import CONST, { TimerStatusType } from '../../utils/CONST';
 
-const StyledWorkoutDisplay = styled.div`
+interface StyledWorkoutDisplayProps {
+  status: TimerStatusType;
+  isResting?: boolean;
+}
+
+const StyledWorkoutDisplay = styled.div<StyledWorkoutDisplayProps>`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -9,7 +16,11 @@ const StyledWorkoutDisplay = styled.div`
   height: 100px;
   gap: 10px;
   border-radius: 20px;
-  background-color: #e0e0e0;
+  background-color: 
+    ${({ status, isResting }) => 
+      (status === CONST.TimerStatuses.COMPLETE ? 
+        '#28A745' : 
+        status === CONST.TimerStatuses.PLAY ? isResting ? '#FFC107' : '#007BFF' : status === CONST.TimerStatuses.PAUSE ? '#6C757D' : '#e0e0e0')};
   border: 2px solid #ccc;
   font-size: 1.5rem;
   font-weight: bold;
@@ -23,11 +34,6 @@ const StyledWorkoutDisplay = styled.div`
     height: 80px;
     font-size: 1.2rem;
   }
-
-  &:hover {
-    background-color: #d0d0d0;
-    border-color: #999;
-  }
 `;
 
 const StyledName = styled.div`
@@ -37,20 +43,31 @@ const StyledName = styled.div`
 `;
 
 interface WorkoutDisplayProps {
-  time: number;
-  name: string; // Add a name prop
+  timer: Timer;
 }
 
-const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ time, name }) => {
-  const displayTime =
-    time > 0
-      ? `${Math.floor(time / 60)}:${String(time % 60).padStart(2, '0')}`
-      : 'Time is Up!';
+const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ timer }) => {
+  const displayTime = () => {
+    if (timer.status === CONST.TimerStatuses.COMPLETE) {
+      return timer.mode === CONST.TimerTypes.STOPWATCH ? '1:00' : '0:00';
+    }
+
+    if (timer.mode === CONST.TimerTypes.STOPWATCH) {
+      return `${Math.floor(timer.passedTime / 60)}:${String(timer.passedTime % 60).padStart(2, '0')}`;
+    } else if (timer.mode === CONST.TimerTypes.COUNTDOWN || timer.mode === CONST.TimerTypes.XY) {
+      return `${Math.floor((timer.expectedTime - timer.passedTime) / 60)}:${String((timer.expectedTime - timer.passedTime) % 60).padStart(2, '0')}`;
+    } else if (timer.mode === CONST.TimerTypes.TABATA) {
+      const expectedTime = timer.isResting ? timer.restTime ?? 0 : timer.expectedTime;
+      return `${Math.floor((expectedTime - timer.passedTime) / 60)}:${String((expectedTime - timer.passedTime) % 60).padStart(2, '0')}`;
+    }
+    
+    return 'Time is Up!'
+  }
 
   return (
-    <StyledWorkoutDisplay>
-      <StyledName>{name}</StyledName> {/* Render the name */}
-      {time === 0 ? '0.00' : displayTime}
+    <StyledWorkoutDisplay status={timer.status} isResting={timer.isResting}>
+      <StyledName>{timer.mode}</StyledName>
+      { displayTime() }
     </StyledWorkoutDisplay>
   );
 };

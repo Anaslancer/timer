@@ -1,94 +1,54 @@
-import { useEffect, useState } from 'react';
-import ActionButton from '../generic/ActionButton';
+import { useState } from 'react';
 import DisplayWindow from '../generic/DisplayWindow';
 import InputField from '../generic/Input';
-import Loading from '../generic/Loading';
+import { Timer, useTimerContext } from '../../utils/context';
+import CONST from '../../utils/CONST';
+import { timeToSec } from '../../utils/helpers';
 
 //sets the states for variables that need to be followed
 const XY = () => {
-    const [time, setTime] = useState(0);
     const [minutes, setMinutes] = useState(0);
     const [seconds, setSeconds] = useState(0);
     const [repititions, setRepetitions] = useState(1);
-    const [currentRepeat, setCurrentRepeat] = useState(0);
-    const [isCountingDown, setIsCountingDown] = useState(false);
-    const [isRunning, setIsRunning] = useState(false);
 
-    //runs the countdown for every repetition provided. Checks if the repetitions have been completed with the if statement.
-    useEffect(() => {
-        let timer: NodeJS.Timeout;
-        if (isRunning && time > 0) {
-            setIsCountingDown(true);
-            timer = setInterval(() => {
-                setTime(prevTime => {
-                    if (prevTime === 1) {
-                        if (currentRepeat < repititions - 1) {
-                            setCurrentRepeat(prev => prev + 1);
-                            return minutes * 60 + seconds;
-                        } else {
-                            setIsRunning(false);
-                            return 0;
-                        }
-                    }
-                    return prevTime - 1;
-                });
-            }, 1000);
-        } else if (time === 0) {
-            setIsRunning(false);
-            setIsCountingDown(false);
-        }
-        return () => {
-            if (timer) clearInterval(timer);
-        };
-    }, [isRunning, time, repititions, currentRepeat, minutes, seconds]);
+    const { addTimerToQueue: addCurrentTimerToQueue } = useTimerContext();
 
-    //toggles between play and pause button.
-    const handlePlayPause = () => {
-        if (!isRunning) {
-            setCurrentRepeat(0);
-            setTime(minutes * 60 + seconds);
-        }
-        setIsRunning(prev => !prev);
-    };
-
-    //resets the input to the original values provided.
-    const handleReset = () => {
-        setIsRunning(false);
-        setCurrentRepeat(0);
-        setTime(minutes * 60 + seconds);
-    };
-
-    //forwards the countdown to the end.
-    const handleFastForward = () => {
-        setIsRunning(false);
-        setTime(0);
-        setCurrentRepeat(0);
-    };
-
-    //Sets the minutes value from the input
     const handleMinuteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = Math.max(0, Number.parseInt(e.target.value, 10) || 0);
         setMinutes(value);
-        setTime(value * 60 + seconds);
     };
 
-    //sets the seconds value from the input
     const handleSecondChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let value = Math.max(0, Number.parseInt(e.target.value, 10) || 0);
         value = value > 59 ? 59 : value;
         setSeconds(value);
-        setTime(minutes * 60 + value);
     };
 
     //sets the repetition value from the input.
     const handleRepititionsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = Math.max(1, Number.parseInt(e.target.value, 10) || 1);
         setRepetitions(value);
-        setCurrentRepeat(0);
-        setTime(minutes * 60 + seconds);
     };
 
-    //displays the XY timer.
+    const addTimer = () => {
+        const activeTime = timeToSec(minutes, seconds);
+        
+        if (!activeTime) return;
+
+        const timer: Timer = {
+            mode: CONST.TimerTypes.XY,
+            expectedTime: activeTime,
+            status: CONST.TimerStatuses.READY,
+            round: repititions,
+            passedTime: 0,
+            passedRound: 0,
+            restTime: 0,
+            isResting: false,
+        }
+
+        addCurrentTimerToQueue(timer);
+    }
+
     return (
         <div
             style={{
@@ -99,17 +59,29 @@ const XY = () => {
                 height: '100vh',
             }}
         >
-            <DisplayWindow time={time} />
+            <DisplayWindow time={timeToSec(minutes, seconds)} />
             <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '10px' }}>
-                <InputField value={minutes} onChange={handleMinuteChange} placeholder="Min:" min={0} disabled={isRunning} isRunning={isRunning} />
-                <InputField value={seconds} onChange={handleSecondChange} placeholder="Sec:" min={0} max={59} disabled={isRunning} isRunning={isRunning} />
-                <InputField value={repititions} onChange={handleRepititionsChange} placeholder="Reps:" min={1} disabled={isCountingDown} isRunning={isRunning} />
+                <InputField 
+                    value={minutes} 
+                    onChange={handleMinuteChange} 
+                    placeholder="Min:" 
+                    min={0} 
+                />
+                <InputField 
+                    value={seconds} 
+                    onChange={handleSecondChange} 
+                    placeholder="Sec:" 
+                    min={0} 
+                    max={59} 
+                />
+                <InputField 
+                    value={repititions} 
+                    onChange={handleRepititionsChange} 
+                    placeholder="Reps:" 
+                    min={1} 
+                />
             </div>
-            <Loading.ActivityButtonContainer>
-                <ActionButton name={isRunning ? 'Pause' : 'Play'} key="PausePlay" onClick={handlePlayPause} />
-                <ActionButton name="Reset" key="Reset" onClick={handleReset} />
-                <ActionButton name="FastForward" key="FastForward" onClick={handleFastForward} />
-            </Loading.ActivityButtonContainer>
+            <button onClick={addTimer}>Add Timer</button>
         </div>
     );
 };

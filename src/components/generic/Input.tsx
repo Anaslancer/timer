@@ -8,15 +8,14 @@ const StyledInput = styled.input<{ isRunning: boolean }>`
 `;
 
 const StyledDescription = styled.label`
-    
     font-size: 0.5rem;
 `;
 
 interface InputProps {
     value: number;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    disabled: boolean;
-    isRunning: boolean;
+    disabled?: boolean;
+    isRunning?: boolean;
     placeholder?: string;
     min?: number;
     max?: number;
@@ -26,7 +25,7 @@ const InputField: React.FC<InputProps> = ({
     value,
     onChange,
     disabled,
-    isRunning,
+    isRunning = false,
     placeholder = '', // Default value
     min = 0, // Default value
     max = 100, // Default value
@@ -34,7 +33,16 @@ const InputField: React.FC<InputProps> = ({
     return (
         <div style={{ display: 'flex', alignItems: 'center' }}>
             <StyledDescription htmlFor={placeholder}>{placeholder}</StyledDescription>
-            <StyledInput type="number" value={value} onChange={onChange} disabled={disabled} isRunning={isRunning} placeholder={placeholder} min={min} max={max} />
+            <StyledInput 
+                type="number" 
+                value={value} 
+                onChange={onChange} 
+                disabled={disabled} 
+                isRunning={isRunning} 
+                placeholder={placeholder} 
+                min={min} 
+                max={max} 
+            />
         </div>
     );
 };

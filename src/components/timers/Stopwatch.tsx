@@ -1,23 +1,27 @@
 
-import ActionButton from '../generic/ActionButton';
 import DisplayWindow from '../generic/DisplayWindow';
 import Loading from '../generic/Loading';
-import { useTimer } from '../../utils/helpers';
-
+import { Timer, useTimerContext } from '../../utils/context';
+import CONST from '../../utils/CONST';
 
 const Stopwatch = () => {
-    
-    const {
-        time,
-        isRunning,
-        errorMessage,
-        handlePlayPause,
-        handleReset,
-        handleFastForward, 
-    } = useTimer('stopwatch');
+    const { addTimerToQueue: addCurrentTimerToQueue } = useTimerContext();
 
+    const addTimer = () => {
+        const timer: Timer = {
+            mode: CONST.TimerTypes.STOPWATCH,
+            expectedTime: 60,
+            status: CONST.TimerStatuses.READY,
+            passedTime: 0,
+            round: 1,
+            passedRound: 0,
+            restTime: 0,
+            isResting: false,
+        }
+        addCurrentTimerToQueue(timer);
+    }
 
-        //returns the display window
+    // returns the display window
     return (
         <div
             style={{
@@ -28,16 +32,9 @@ const Stopwatch = () => {
                 height: '100vh',
             }}
         >
-            <DisplayWindow time={time} />
-            {errorMessage && (
-                <div style={{ color: 'red', marginTop: '10px' }}>
-                    {errorMessage}
-                </div>
-            )}
+            <DisplayWindow time={60} />
             <Loading.ActivityButtonContainer>
-                <ActionButton name={isRunning ? 'Pause' : 'Play'} key="PausePlay" onClick={handlePlayPause} />
-                <ActionButton name="Reset" key="Reset" onClick={handleReset} />
-                <ActionButton name="FastForward" key="FastForward" onClick={handleFastForward} />
+                <button onClick = {addTimer}>Add Timer</button>
             </Loading.ActivityButtonContainer>
         </div>
     );

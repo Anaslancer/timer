@@ -37,25 +37,26 @@ const TimerDisplay = styled.div`
 `;
 */
 const Home = () => {
-  const { timersQueue, startQueue, isRunning } = useTimerContext();
+  const { time, isRunning, timersQueue, startQueue } = useTimerContext();
 
   // Calculate total time based on the timers in the queue
-  const totalTimeInSeconds = timersQueue.reduce((total, timer) => total + timer.time, 0);
+  const totalTimeInSeconds = timersQueue.reduce((total, timer) => total + timer.expectedTime, 0);
 
   return (
     <div>
-      <button onClick={startQueue}>{isRunning ? 'StopQueue' : 'StartQueue'}</button>
+      <button onClick={startQueue}>{isRunning ? 'Stop Queue' : 'Start Queue'}</button>
       <div>Time: {totalTimeInSeconds} seconds</div>
       <div>
-        {timersQueue.map((timer, index) => (
-          <div key={index}>
-            <WorkoutDisplay 
-              time= {timer.time}
-              name={timer.mode} 
-              //isRunning={timer.isRunning}  // Optionally pass isRunning for each timer
-            />
-          </div>
-        ))}
+        {
+          timersQueue.map((timer, index) => (
+            <div key={index}>
+              <WorkoutDisplay 
+                timer={timer}
+                //isRunning={timer.isRunning}  // Optionally pass isRunning for each timer
+              />
+            </div>
+          ))
+        }
       </div>
     </div>
   );

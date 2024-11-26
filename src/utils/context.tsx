@@ -1,9 +1,15 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import CONST, { TimerType, TimerStatusType } from './CONST';
 
-interface Timer {
-  time: number;
-  isRunning: boolean;
-  mode: string;
+export interface Timer {
+  mode: TimerType;
+  expectedTime: number;
+  restTime: number;
+  round: number;
+  status: TimerStatusType;
+  passedTime: number;
+  passedRound: number;
+  isResting: boolean;
 }
 
 // Define the types for the context state and actions
@@ -13,17 +19,14 @@ interface TimerContextType {
   isRunning: boolean;
   errorMessage: string;
   mode: string;
+  timersQueue: Timer[];
   startQueue: () => void;
   handlePlayPause: () => void;
-  handleReset: () => void;
-  handleFastForward: () => void;
   setTimer: (minutes: number, seconds: number) => void;
-  setTimerDirect: (seconds: number) => void;
   setIsRunning: (state: boolean) => void;
-  setModer: (mode: string) => void;
-  timersQueue: Timer[];
-  saveCurrentTimerToQueue: () => void;
-  deleteCurrentTimerToQueue: () => void;
+  addTimerToQueue: (timer: Timer) => void;
+  removeLastTimerFromQueue: () => void;
+  removeAllTimersFromQueue: () => void;
 }
 
 // Define the type for the TimerProvider props
@@ -37,17 +40,14 @@ const defaultContextValue: TimerContextType = {
   isRunning: false,
   errorMessage: '',
   mode: 'countdown',
-  timersQueue: [{ time: 0, isRunning: false, mode: 'countdown' }],
+  timersQueue: [],
   startQueue: () => {},
   handlePlayPause: () => {},
-  handleReset: () => {},
-  handleFastForward: () => {},
   setTimer: () => {},
-  setTimerDirect: () => {},
   setIsRunning: () => {},
-  setModer: () => {},
-  saveCurrentTimerToQueue: () => {},
-  deleteCurrentTimerToQueue: () => {},
+  addTimerToQueue: () => {},
+  removeLastTimerFromQueue: () => {},
+  removeAllTimersFromQueue: () => {},
 };
 
 const TimerContext = createContext<TimerContextType>(defaultContextValue);
@@ -58,98 +58,111 @@ export const useTimerContext = () => {
 };
 
 export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
-  const [timersQueue, setTimersQueue] = useState<{ time: number; isRunning: boolean; mode: string }[]>([]);
+  const [timersQueue, setTimersQueue] = useState<Timer[]>([]);
   const [time, setTime] = useState(0); // Time remaining
   const [totalTime, setTotalTime] = useState(0); // Total Time
-  //const [currentTimerIndex, setCurrentTimerIndex] = useState(0);
-  //const [remainingTime, setRemainingTime] = useState(timersQueue[currentTimerIndex]?.time || 0);
   const [isRunning, setIsRunning] = useState(false); // Timer state (running or paused)
   const [errorMessage, setErrorMessage] = useState(''); // Error handling
   const [mode, setMode] = useState("countdown"); // Timer mode ('countdown' or 'stopwatch')
-  //const [currentTimerIndex, setCurrentTimerIndex] = useState(0); // Track the current timer index in the queue
   const [activeTimerIndex, setActiveTimerIndex] = useState<number | null>(null); // Track the active timer
   
   // Timer logic for countdown and stopwatch
   useEffect(() => {
-    // Countdown mode: Decrement the time
     let timer = setInterval(() => {
       if (activeTimerIndex !== null) {
-        if (mode === 'countdown' && timersQueue[activeTimerIndex].time > 0) {
-          const newTimersQueue = [...timersQueue];
-          newTimersQueue[activeTimerIndex] = { ...timersQueue[activeTimerIndex], time: timersQueue[activeTimerIndex].time - 1 };
-          setTimersQueue(newTimersQueue);
+        let newQueue = [...timersQueue];
+        const currentTimer = timersQueue[activeTimerIndex];
+
+        const expectedTime = currentTimer.isResting ? currentTimer.restTime : currentTimer.expectedTime;
+
+        if (currentTimer.passedTime < expectedTime) {
+          newQueue[activeTimerIndex].passedTime = currentTimer.passedTime + 1;
         }
+        
+        if (currentTimer.passedTime === expectedTime) {
+          newQueue[activeTimerIndex].passedTime = 0;
+          if (currentTimer.mode === CONST.TimerTypes.TABATA) {
+            if (currentTimer.isResting) {
+              newQueue[activeTimerIndex].passedRound = currentTimer.passedRound + 1;
+            }
+
+            currentTimer.isResting = !currentTimer.isResting;
+          } else {
+            newQueue[activeTimerIndex].passedRound = currentTimer.passedRound + 1;
+          }
+
+          if (currentTimer.round === newQueue[activeTimerIndex].passedRound) {
+            newQueue[activeTimerIndex].status = CONST.TimerStatuses.COMPLETE;
+            
+            if (activeTimerIndex < timersQueue.length - 1) {
+              const newIndex = activeTimerIndex + 1;
+              setActiveTimerIndex(newIndex);
+              if (!isRunning) setIsRunning(true);
+              newQueue[newIndex].status = CONST.TimerStatuses.PLAY;
+            } else {
+              setActiveTimerIndex(null); // End of the queue
+              if (isRunning) setIsRunning(false);
+            }
+          }
+        }
+
+        // if (currentTimer.mode === CONST.TimerTypes.TABATA) {
+        //   if (!currentTimer.isResting && currentTimer.passedTime === currentTimer.expectedTime) {
+        //     newQueue[activeTimerIndex].passedTime = 0;
+        //     newQueue[activeTimerIndex].isResting = true;
+        //   } else if (currentTimer.isResting && currentTimer.passedTime === currentTimer.restTime) {
+        //     newQueue[activeTimerIndex].passedTime = 0;
+        //     newQueue[activeTimerIndex].passedRound = currentTimer.passedRound + 1;
+        //     newQueue[activeTimerIndex].isResting = false;
+        //   }
+        // }
+
+        setTimersQueue(newQueue);
       }
     }, 1000);
 
     return () => {
       if (timer) clearInterval(timer); // Clean up the timer
     };
-  }, [isRunning, activeTimerIndex, mode, timersQueue]);
-
-  // Move to the next timer when the current one finishes
-  useEffect(() => {
-    if (activeTimerIndex !== null && timersQueue[activeTimerIndex]?.time === 0) {
-      const newTimersQueue = [...timersQueue];
-      newTimersQueue[activeTimerIndex] = { ...timersQueue[activeTimerIndex], isRunning: false };
-      setTimersQueue(newTimersQueue);
-    
-      // Automatically move to the next timer
-      if (activeTimerIndex < timersQueue.length - 1) {
-        // setActiveTimerIndex((prevIndex) => (prevIndex !== null ? prevIndex + 1 : null));
-        setActiveTimerIndex(activeTimerIndex + 1);
-        if (!isRunning) setIsRunning(true);
-      } else {
-        setActiveTimerIndex(null); // End of the queue
-        if (isRunning) setIsRunning(false);
-      }
-    }
-  }, [timersQueue]);
+  }, [isRunning, activeTimerIndex, mode]);
 
   useEffect(() => {
-    const newTotalTime = timersQueue.reduce((total, timer) => total + timer.time, 0);
-    setTotalTime(newTotalTime);
+    // const newTotalTime = timersQueue.reduce((total, timer) => total + timer.time, 0);
+    // setTotalTime(newTotalTime);
   }, [timersQueue]);
 
   // Start queue function now selects the first timer and starts it
   const startQueue = () => {
     if (timersQueue.length > 0) {
-      setActiveTimerIndex(0); // Start with the first timer in the queue
+      setActiveTimerIndex(0);
       setIsRunning(true);
+
+      let newTimersQueue = [...timersQueue];
+      newTimersQueue[0] = { 
+        ...timersQueue[0], 
+        status: CONST.TimerStatuses.PLAY,
+      };
+      setTimersQueue(newTimersQueue);
+  
     } else {
       setErrorMessage('No timers in the queue to start!');
     }
   };
 
   // Function to save the values that are added 
-  const addCurrentTimerToQueue = () => {
-    console.log({ time, isRunning, mode });
-    if (time === 0) {
-      // Don't save if time is 0
-      return;
-    }
-
-    if (activeTimerIndex === null && timersQueue.length === 0) {
-      setActiveTimerIndex(0);
-    }
-
-    setTimersQueue(prevQueue => [...prevQueue, { time, isRunning, mode }]);
-    console.log("Added a new timer", timersQueue);
+  const addTimerToQueue = (timer: Timer) => {
+    setTimersQueue(prevQueue => [...prevQueue, timer]);
   };
 
   // Function to save the values that are added 
-  const deleteCurrentTimerToQueue = () => {
-    if (activeTimerIndex !== null && timersQueue.length === 1) {
-      setActiveTimerIndex(null);
-    }
+  const removeLastTimerFromQueue = () => {
     setTimersQueue(prevQueue => prevQueue.slice(0, prevQueue.length - 1));
-    console.log({timersQueue})
   };
 
-  /*const startQueue = () => {
-    //setCurrentTimerIndex(0); // Start from the first timer
-    setIsRunning(true); // Start the first timer
-  };*/
+  // Function to save the values that are added 
+  const removeAllTimersFromQueue = () => {
+    setTimersQueue([]);
+  };
 
   // Play or pause the timer
   const handlePlayPause = () => {
@@ -158,27 +171,6 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
     } else {
       setErrorMessage('Please set a valid time before starting!');
     }
-  };
-
-  // Reset the timer
-  const handleReset = () => {
-    setIsRunning(false);
-    setTime(0);
-    setErrorMessage('');
-  };
-
-  // Fast forward the timer
-  const handleFastForward = () => {
-    if (mode === 'countdown') {
-      setTime(0); // Set time to 0 for countdown mode
-    } else if (mode === 'stopwatch') {
-      setTime(300); // Set time to 5 minutes for stopwatch mode
-    }
-    setIsRunning(false); // Stop the timer after fast forwarding
-  };
-  
-  const setModer = (mode: string) => {
-    setMode(mode)
   };
 
   // Set the timer manually
@@ -192,10 +184,6 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
     }
   };
 
-  const setTimerDirect = (seconds: number) => {
-    setTime(seconds);
-  }
-
   return (
     <TimerContext.Provider 
       value={{ 
@@ -204,15 +192,12 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
         errorMessage, 
         mode, 
         handlePlayPause, 
-        handleReset, 
-        handleFastForward, 
         setTimer, 
-        setModer, 
         timersQueue, 
-        saveCurrentTimerToQueue: addCurrentTimerToQueue, 
-        deleteCurrentTimerToQueue, 
+        addTimerToQueue, 
+        removeLastTimerFromQueue,
+        removeAllTimersFromQueue,
         setIsRunning, 
-        setTimerDirect, 
         startQueue, 
         totalTime
       }}
