@@ -20,9 +20,9 @@ const Countdown = () => {
             timer = setInterval(() => {
                 setTimerDirect(time - 1);
             }, 1000);
-            console.log(time)
-            console.log(timersQueue);
-            console.log("Countdown feature runnning");
+            // console.log(time);
+            // console.log("timersQueue", timersQueue);
+            // console.log("Countdown feature running");
         } else if (time === 0) {
             setIsRunning(false);
         }
@@ -32,18 +32,15 @@ const Countdown = () => {
         
     }, [isRunning, mode, time, timersQueue]);
 
-
     // Convert time to minutes and seconds for display
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
-
 
     // Handle minute change
     const handleMinuteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = Number(e.target.value);
         // Set the updated minutes while keeping the current seconds
         setTimer(value, seconds); // Update minutes, keep current seconds
-        setModer("countdown"); //Need to move this logic to add timer later
     };
 
     // Handle second change (restricting to 0-59)
@@ -87,7 +84,14 @@ const Countdown = () => {
                 <ActionButton name="Reset" key="Reset" onClick={handleReset} />
                 <ActionButton name="FastForward" key="FastForward" onClick={handleFastForward} />
             </Loading.ActivityButtonContainer>
-            <button onClick = {saveCurrentTimerToQueue}>Add Timer</button>
+            <button 
+                onClick = {() => {
+                    setModer("countdown");
+                    saveCurrentTimerToQueue();
+                }
+            }>
+                Add Timer
+            </button>
             <button onClick = {deleteCurrentTimerToQueue}>Delete Timer</button>
         </div>
     );
