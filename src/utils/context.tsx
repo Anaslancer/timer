@@ -72,12 +72,12 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
   // Timer logic for countdown and stopwatch
   useEffect(() => {
     // Countdown mode: Decrement the time
-    const timer = setInterval(() => {
-      if (isRunning && activeTimerIndex !== null && timersQueue[activeTimerIndex].time > 0) {
-        if (mode === 'countdown') {
-          if (timersQueue[activeTimerIndex].time -- <= 0) {
-            setIsRunning(false);
-          }
+    let timer = setInterval(() => {
+      if (activeTimerIndex !== null) {
+        if (mode === 'countdown' && timersQueue[activeTimerIndex].time > 0) {
+          const newTimersQueue = [...timersQueue];
+          newTimersQueue[activeTimerIndex] = { ...timersQueue[activeTimerIndex], time: timersQueue[activeTimerIndex].time - 1 };
+          setTimersQueue(newTimersQueue);
         }
       }
     }, 1000);
@@ -86,6 +86,30 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
       if (timer) clearInterval(timer); // Clean up the timer
     };
   }, [isRunning, activeTimerIndex, mode, timersQueue]);
+
+  // Move to the next timer when the current one finishes
+  useEffect(() => {
+    if (activeTimerIndex !== null && timersQueue[activeTimerIndex]?.time === 0) {
+      const newTimersQueue = [...timersQueue];
+      newTimersQueue[activeTimerIndex] = { ...timersQueue[activeTimerIndex], isRunning: false };
+      setTimersQueue(newTimersQueue);
+    
+      // Automatically move to the next timer
+      if (activeTimerIndex < timersQueue.length - 1) {
+        // setActiveTimerIndex((prevIndex) => (prevIndex !== null ? prevIndex + 1 : null));
+        setActiveTimerIndex(activeTimerIndex + 1);
+        if (!isRunning) setIsRunning(true);
+      } else {
+        setActiveTimerIndex(null); // End of the queue
+        if (isRunning) setIsRunning(false);
+      }
+    }
+  }, [timersQueue]);
+
+  useEffect(() => {
+    const newTotalTime = timersQueue.reduce((total, timer) => total + timer.time, 0);
+    setTotalTime(newTotalTime);
+  }, [timersQueue]);
 
   // Start queue function now selects the first timer and starts it
   const startQueue = () => {
@@ -96,26 +120,6 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
       setErrorMessage('No timers in the queue to start!');
     }
   };
-
-  // Move to the next timer when the current one finishes
-  useEffect(() => {
-    if (activeTimerIndex !== null && timersQueue[activeTimerIndex]?.time === 0) {
-      // Automatically move to the next timer
-      if (activeTimerIndex < timersQueue.length - 1) {
-        // setActiveTimerIndex((prevIndex) => (prevIndex !== null ? prevIndex + 1 : null));
-        setActiveTimerIndex(activeTimerIndex + 1);
-        setIsRunning(true);
-      } else {
-        setActiveTimerIndex(null); // End of the queue
-        setIsRunning(false);
-      }
-    }
-  }, [activeTimerIndex, timersQueue]);
-
-  useEffect(() => {
-    const newTotalTime = timersQueue.reduce((total, timer) => total + timer.time, 0);
-    setTotalTime(newTotalTime);
-  }, [timersQueue]);
 
   // Function to save the values that are added 
   const addCurrentTimerToQueue = () => {
