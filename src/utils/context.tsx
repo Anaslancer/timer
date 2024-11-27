@@ -15,18 +15,19 @@ export interface Timer {
 // Define the types for the context state and actions
 interface TimerContextType {
   time: number;
-  totalTime: number;
   isRunning: boolean;
   errorMessage: string;
-  mode: string;
   timersQueue: Timer[];
   startQueue: () => void;
+  stopQueue: () => void;
+  resetQueue: () => void;
   handlePlayPause: () => void;
   setTimer: (minutes: number, seconds: number) => void;
   setIsRunning: (state: boolean) => void;
   addTimerToQueue: (timer: Timer) => void;
   removeLastTimerFromQueue: () => void;
   removeAllTimersFromQueue: () => void;
+  setTimerDirect: (seconds: number) => void;
 }
 
 // Define the type for the TimerProvider props
@@ -36,18 +37,19 @@ interface TimerProviderProps {
 
 const defaultContextValue: TimerContextType = {
   time: 0,
-  totalTime: 0,
   isRunning: false,
   errorMessage: '',
-  mode: 'countdown',
   timersQueue: [],
   startQueue: () => {},
+  stopQueue: () => {},
+  resetQueue: () => {},
   handlePlayPause: () => {},
   setTimer: () => {},
   setIsRunning: () => {},
   addTimerToQueue: () => {},
   removeLastTimerFromQueue: () => {},
   removeAllTimersFromQueue: () => {},
+  setTimerDirect: () => {},
 };
 
 const TimerContext = createContext<TimerContextType>(defaultContextValue);
@@ -60,16 +62,15 @@ export const useTimerContext = () => {
 export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
   const [timersQueue, setTimersQueue] = useState<Timer[]>([]);
   const [time, setTime] = useState(0); // Time remaining
-  const [totalTime, setTotalTime] = useState(0); // Total Time
   const [isRunning, setIsRunning] = useState(false); // Timer state (running or paused)
   const [errorMessage, setErrorMessage] = useState(''); // Error handling
-  const [mode, setMode] = useState("countdown"); // Timer mode ('countdown' or 'stopwatch')
   const [activeTimerIndex, setActiveTimerIndex] = useState<number | null>(null); // Track the active timer
   
   // Timer logic for countdown and stopwatch
   useEffect(() => {
     let timer = setInterval(() => {
-      if (activeTimerIndex !== null) {
+      if (isRunning && activeTimerIndex !== null) {
+        setTime(prevQueue => prevQueue + 1);
         let newQueue = [...timersQueue];
         const currentTimer = timersQueue[activeTimerIndex];
 
@@ -106,17 +107,6 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
           }
         }
 
-        // if (currentTimer.mode === CONST.TimerTypes.TABATA) {
-        //   if (!currentTimer.isResting && currentTimer.passedTime === currentTimer.expectedTime) {
-        //     newQueue[activeTimerIndex].passedTime = 0;
-        //     newQueue[activeTimerIndex].isResting = true;
-        //   } else if (currentTimer.isResting && currentTimer.passedTime === currentTimer.restTime) {
-        //     newQueue[activeTimerIndex].passedTime = 0;
-        //     newQueue[activeTimerIndex].passedRound = currentTimer.passedRound + 1;
-        //     newQueue[activeTimerIndex].isResting = false;
-        //   }
-        // }
-
         setTimersQueue(newQueue);
       }
     }, 1000);
@@ -124,18 +114,14 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
     return () => {
       if (timer) clearInterval(timer); // Clean up the timer
     };
-  }, [isRunning, activeTimerIndex, mode]);
-
-  useEffect(() => {
-    // const newTotalTime = timersQueue.reduce((total, timer) => total + timer.time, 0);
-    // setTotalTime(newTotalTime);
-  }, [timersQueue]);
+  }, [isRunning, activeTimerIndex]);
 
   // Start queue function now selects the first timer and starts it
   const startQueue = () => {
     if (timersQueue.length > 0) {
       setActiveTimerIndex(0);
       setIsRunning(true);
+      setTime(0);
 
       let newTimersQueue = [...timersQueue];
       newTimersQueue[0] = { 
@@ -143,10 +129,30 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
         status: CONST.TimerStatuses.PLAY,
       };
       setTimersQueue(newTimersQueue);
-  
     } else {
       setErrorMessage('No timers in the queue to start!');
     }
+  };
+
+  const stopQueue = () => {
+    if (timersQueue.length > 0) {
+      setIsRunning(!isRunning);
+    } else {
+      setErrorMessage('No timers in the queue to start!');
+    }
+  };
+
+  const resetQueue = () => {
+    setTime(0);
+    setIsRunning(false);
+
+    let newTimersQueue = [...timersQueue];
+    newTimersQueue.forEach((timer) => {
+      timer.passedRound = 0;
+      timer.passedTime = 0;
+      timer.status = CONST.TimerStatuses.READY;
+    });
+    setTimersQueue(newTimersQueue);
   };
 
   // Function to save the values that are added 
@@ -166,7 +172,7 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
 
   // Play or pause the timer
   const handlePlayPause = () => {
-    if (mode === 'stopwatch' || time > 0) {
+    if (time > 0) {
       setIsRunning(prev => !prev); // Toggle the running state for both modes
     } else {
       setErrorMessage('Please set a valid time before starting!');
@@ -184,13 +190,16 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
     }
   };
 
+  const setTimerDirect = (seconds: number) => {
+    setTime(seconds);
+  }
+
   return (
     <TimerContext.Provider 
       value={{ 
         time, 
         isRunning, 
         errorMessage, 
-        mode, 
         handlePlayPause, 
         setTimer, 
         timersQueue, 
@@ -199,7 +208,9 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
         removeAllTimersFromQueue,
         setIsRunning, 
         startQueue, 
-        totalTime
+        stopQueue,
+        resetQueue,
+        setTimerDirect,
       }}
     >
       {children}
