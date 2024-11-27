@@ -4,7 +4,7 @@ import CONST, { TimerStatusType } from '../../utils/CONST';
 
 interface StyledWorkoutDisplayProps {
   status: TimerStatusType;
-  isResting?: boolean;
+  resting: string;
 }
 
 const StyledWorkoutDisplay = styled.div<StyledWorkoutDisplayProps>`
@@ -17,10 +17,10 @@ const StyledWorkoutDisplay = styled.div<StyledWorkoutDisplayProps>`
   gap: 10px;
   border-radius: 20px;
   background-color: 
-    ${({ status, isResting }) => 
+    ${({ status, resting }) => 
       (status === CONST.TimerStatuses.COMPLETE ? 
         '#28A745' : 
-        status === CONST.TimerStatuses.PLAY ? isResting ? '#FFC107' : '#007BFF' : status === CONST.TimerStatuses.PAUSE ? '#6C757D' : '#e0e0e0')};
+        status === CONST.TimerStatuses.PLAY ? resting === 'true' ? '#FFC107' : '#007BFF' : status === CONST.TimerStatuses.PAUSE ? '#6C757D' : '#e0e0e0')};
   border: 2px solid #ccc;
   font-size: 1.5rem;
   font-weight: bold;
@@ -65,7 +65,7 @@ const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ timer }) => {
   }
 
   return (
-    <StyledWorkoutDisplay status={timer.status} isResting={timer.isResting}>
+    <StyledWorkoutDisplay status={timer.status} resting={timer.isResting.toString()}>
       <StyledName>{timer.mode}</StyledName>
       { displayTime() }
     </StyledWorkoutDisplay>

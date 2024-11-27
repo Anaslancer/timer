@@ -67,7 +67,7 @@ const Documentation = () => {
                 />
                 <DocumentComponent
                     title="Input Field "
-                    component={<InputField value={0} onChange={noop} placeholder="Min:" min={0} disabled={bool} isRunning={bool} />}
+                    component={<InputField value={0} onChange={noop} placeholder="Min:" min={0} disabled={bool} running={bool} />}
                     propDocs={[
                         {
                             prop: 'Input Field',

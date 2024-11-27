@@ -24,13 +24,13 @@ const TimersContainer = styled.div`
 `;
 
 interface TimerButtonProps {
-    isActive: boolean;
+    active: string;
 }
 
 const TimerButton = styled.div<TimerButtonProps>`
   width: 80px;
   height: 80px;
-  background-color: ${props => (props.isActive ? '#c0c0c0' : '#e0e0e0')};
+  background-color: ${(props) => (props.active === 'true' ? '#c0c0c0' : '#e0e0e0')};
   border: 2px solid #ccc;
   border-radius: 50%;
   display: flex;
@@ -84,21 +84,21 @@ const TimersView = () => {
     const { timersQueue, removeLastTimerFromQueue, removeAllTimersFromQueue } = useTimerContext();
 
     const timers = [
-        { title: 'Stopwatch', C: <Stopwatch /> },
-        { title: 'Countdown', C: <Countdown /> },
-        { title: 'XY', C: <XY /> },
-        { title: 'Tabata', C: <Tabata /> },
+        { title: 'Stopwatch', C: <Stopwatch key='stopwatch' /> },
+        { title: 'Countdown', C: <Countdown key='countdown' /> },
+        { title: 'XY', C: <XY key='xy' /> },
+        { title: 'Tabata', C: <Tabata key='tabata' /> },
     ];
 
     return (
-        <TimersContainer>
+        <TimersContainer key='test'>
             <TimerDisplay>{timers.map(timer => (activeTimer === timer.title ? timer.C : null))}</TimerDisplay>
             <StopWatchButtonContainer>
                 {
                     timers.map(timer => (
                         <TimerButton
                             key={`timer-${timer.title}`}
-                            isActive={activeTimer === timer.title}
+                            active={(activeTimer === timer.title).toString()}
                             onClick={e => {
                                 e.stopPropagation();
                                 setActiveTimer(timer.title);

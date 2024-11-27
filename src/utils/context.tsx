@@ -65,7 +65,7 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
   const [isRunning, setIsRunning] = useState(false); // Timer state (running or paused)
   const [errorMessage, setErrorMessage] = useState(''); // Error handling
   const [activeTimerIndex, setActiveTimerIndex] = useState<number | null>(null); // Track the active timer
-  
+
   // Timer logic for countdown and stopwatch
   useEffect(() => {
     let timer = setInterval(() => {
@@ -114,7 +114,7 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
     return () => {
       if (timer) clearInterval(timer); // Clean up the timer
     };
-  }, [isRunning, activeTimerIndex]);
+  }, [isRunning, activeTimerIndex, timersQueue]);
 
   // Start queue function now selects the first timer and starts it
   const startQueue = () => {

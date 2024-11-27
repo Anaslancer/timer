@@ -73,7 +73,6 @@ const Home = () => {
             <div key={index}>
               <WorkoutDisplay 
                 timer={timer}
-                //isRunning={timer.isRunning}  // Optionally pass isRunning for each timer
               />
             </div>
           ))

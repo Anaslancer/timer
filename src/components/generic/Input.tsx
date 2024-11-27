@@ -1,10 +1,10 @@
 import styled from 'styled-components';
 
-const StyledInput = styled.input<{ isRunning: boolean }>`
+const StyledInput = styled.input<{ running: string }>`
   padding: 5px;
   width: 60px;
   margin-right: 5px;
-  background-color: ${({ isRunning }) => (isRunning ? '#d3d3d3' : 'White')};
+  background-color: ${({ running }) => (running === 'true' ? '#d3d3d3' : 'White')};
 `;
 
 const StyledDescription = styled.label`
@@ -15,7 +15,7 @@ interface InputProps {
     value: number;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     disabled?: boolean;
-    isRunning?: boolean;
+    running?: boolean;
     placeholder?: string;
     min?: number;
     max?: number;
@@ -25,7 +25,7 @@ const InputField: React.FC<InputProps> = ({
     value,
     onChange,
     disabled,
-    isRunning = false,
+    running = false,
     placeholder = '', // Default value
     min = 0, // Default value
     max = 100, // Default value
@@ -38,7 +38,7 @@ const InputField: React.FC<InputProps> = ({
                 value={value} 
                 onChange={onChange} 
                 disabled={disabled} 
-                isRunning={isRunning} 
+                running={running.toString()} 
                 placeholder={placeholder} 
                 min={min} 
                 max={max} 
