@@ -5,10 +5,9 @@ import { TimerProvider } from './utils/context';
 
 import './index.css';
 import styled from 'styled-components';
-import DocumentationView from './views/DocumentationView';
 import TimersView from './views/AddTimer';
-import Home from './views/Home'
-
+import DocumentationView from './views/DocumentationView';
+import Home from './views/Home';
 
 const Container = styled.div`
   padding: 20px;
@@ -56,43 +55,42 @@ const ButtonLink = styled(Link)`
 `;
 
 const PageIndex = () => {
-  return (   
-    <Container>
-      <Title>ANIKET'S TIMECLOCK ASSIGNMENT</Title>
-      <ButtonLink to="/">Workout</ButtonLink>
-      <ButtonLink to="/docs">Documentation</ButtonLink>
-      <ButtonLink to="/add">Add Timers</ButtonLink>
-      <Outlet />
-    </Container>
-  );
+    return (
+        <Container>
+            <Title>ANIKET'S TIMECLOCK ASSIGNMENT</Title>
+            <ButtonLink to="/">Workout</ButtonLink>
+            <ButtonLink to="/docs">Documentation</ButtonLink>
+            <ButtonLink to="/add">Add Timers</ButtonLink>
+            <Outlet />
+        </Container>
+    );
 };
 
 const router = createHashRouter([
-  {
-    path: '/',
-    element: <PageIndex />,
-    children: [
-      {
-        index: true,
-        element: <Home />,
-      },
-      {
-        path: '/docs',
-        element: <DocumentationView />,
-      },
-      {
-        path: '/add',
-        element: <TimersView />,
-      },
-    ],
-  },
+    {
+        path: '/',
+        element: <PageIndex />,
+        children: [
+            {
+                index: true,
+                element: <Home />,
+            },
+            {
+                path: '/docs',
+                element: <DocumentationView />,
+            },
+            {
+                path: '/add',
+                element: <TimersView />,
+            },
+        ],
+    },
 ]);
 
-// biome-ignore lint/style/noNonNullAssertion: root html element is there
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <TimerProvider>
-      <RouterProvider router={router} />
-    </TimerProvider>
-  </StrictMode>
+    <StrictMode>
+        <TimerProvider>
+            <RouterProvider router={router} />
+        </TimerProvider>
+    </StrictMode>,
 );
