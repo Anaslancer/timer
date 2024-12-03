@@ -12,7 +12,13 @@ const CONST = {
     PAUSE: 'pause',
     COMPLETE: 'complete',
     READY: 'ready',
-  }
+  },
+  StorageKeys: {
+    QUEUE: 'queue',
+    TIME: 'time',
+    RUNNING: 'running',
+    ACTIVE_TIMER_INDEX: 'activeTimerIndex',
+  },
 } as const;
 
 type TimerType = ValueOf<typeof CONST.TimerTypes>;

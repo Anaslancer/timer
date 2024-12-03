@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 import WorkoutDisplay from '../components/generic/WorkoutDisplay';
 import { useTimerContext } from '../utils/context';
+import CONST from '../utils/CONST';
 
 const StyledQueueContainer = styled.div`
   display: flex;
@@ -11,10 +12,15 @@ const StyledQueueContainer = styled.div`
 `;
 
 const Home = () => {
-    const { time, isRunning, timersQueue, startQueue, stopQueue, resetQueue } = useTimerContext();
+    const { time, running, changed, timersQueue, startQueue, stopQueue, resetQueue } = useTimerContext();
 
     // Calculate total time based on the timers in the queue
     const totalTimeInSeconds = timersQueue.reduce((total, timer) => total + (timer.expectedTime + timer.restTime) * timer.round, 0);
+
+    // Save a timer queue to local storage
+    const saveQueue = () => {
+        localStorage.setItem(CONST.StorageKeys.QUEUE, JSON.stringify(timersQueue));
+    }
 
     return (
         <div>
@@ -23,10 +29,13 @@ const Home = () => {
                     Start Queue
                 </button>
                 <button onClick={stopQueue} disabled={time === 0 || time === totalTimeInSeconds}>
-                    {isRunning ? 'Pause Queue' : 'Resume Queue'}
+                    {running ? 'Pause Queue' : 'Resume Queue'}
                 </button>
                 <button onClick={resetQueue} disabled={timersQueue.length === 0 || time === 0}>
                     Reset Queue
+                </button>
+                <button onClick={saveQueue} disabled={!changed}>
+                    Save Queue
                 </button>
             </div>
             <div>Total Time: {totalTimeInSeconds} seconds</div>

@@ -15,19 +15,17 @@ export interface Timer {
 // Define the types for the context state and actions
 interface TimerContextType {
     time: number;
-    isRunning: boolean;
+    running: boolean;
+    changed: boolean;
     errorMessage: string;
     timersQueue: Timer[];
     startQueue: () => void;
     stopQueue: () => void;
     resetQueue: () => void;
-    handlePlayPause: () => void;
-    setTimer: (minutes: number, seconds: number) => void;
-    setIsRunning: (state: boolean) => void;
+    setTimersToQueue: (timers: Timer[]) => void;
     addTimerToQueue: (timer: Timer) => void;
     removeLastTimerFromQueue: () => void;
     removeAllTimersFromQueue: () => void;
-    setTimerDirect: (seconds: number) => void;
 }
 
 // Define the type for the TimerProvider props
@@ -37,19 +35,17 @@ interface TimerProviderProps {
 
 const defaultContextValue: TimerContextType = {
     time: 0,
-    isRunning: false,
+    running: false,
+    changed: false,
     errorMessage: '',
     timersQueue: [],
     startQueue: () => {},
     stopQueue: () => {},
     resetQueue: () => {},
-    handlePlayPause: () => {},
-    setTimer: () => {},
-    setIsRunning: () => {},
+    setTimersToQueue: () => {},
     addTimerToQueue: () => {},
     removeLastTimerFromQueue: () => {},
     removeAllTimersFromQueue: () => {},
-    setTimerDirect: () => {},
 };
 
 const TimerContext = createContext<TimerContextType>(defaultContextValue);
@@ -62,15 +58,36 @@ export const useTimerContext = () => {
 export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
     const [timersQueue, setTimersQueue] = useState<Timer[]>([]);
     const [time, setTime] = useState(0); // Time remaining
-    const [isRunning, setIsRunning] = useState(false); // Timer state (running or paused)
+    const [running, setRunning] = useState(false); // Timer state (running or paused)
+    const [changed, setChanged] = useState(false); // Timer changing state
     const [errorMessage, setErrorMessage] = useState(''); // Error handling
-    const [activeTimerIndex, setActiveTimerIndex] = useState<number | null>(null); // Track the active timer
+    const [activeTimerIndex, setActiveTimerIndex] = useState(-1); // Track the active timer
+
+    // Load timersQueue from local storage
+    useEffect(() => {
+        const strQueue = localStorage.getItem(CONST.StorageKeys.QUEUE);
+        const strTime = localStorage.getItem(CONST.StorageKeys.TIME);
+        const strActiveIndex = localStorage.getItem(CONST.StorageKeys.ACTIVE_TIMER_INDEX);
+
+        if (timersQueue.length === 0 && strQueue) {
+            setTimersQueue(JSON.parse(strQueue));
+        }
+        
+        if (time === 0 && strTime) {
+            setTime(JSON.parse(strTime));
+        }
+
+        if (activeTimerIndex === -1 && strActiveIndex) {
+            setActiveTimerIndex(JSON.parse(strActiveIndex));
+        }
+    }, []);
 
     // Timer logic for countdown and stopwatch
     useEffect(() => {
         let timer = setInterval(() => {
-            if (isRunning && activeTimerIndex !== null) {
-                setTime(prevQueue => prevQueue + 1);
+            if (running && activeTimerIndex !== -1) {
+                // setTime(prevQueue => prevQueue + 1);
+                setQueuePassedTime(time + 1);
                 let newQueue = [...timersQueue];
                 const currentTimer = timersQueue[activeTimerIndex];
 
@@ -97,38 +114,38 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
 
                         if (activeTimerIndex < timersQueue.length - 1) {
                             const newIndex = activeTimerIndex + 1;
-                            setActiveTimerIndex(newIndex);
-                            if (!isRunning) setIsRunning(true);
+                            setQueueActiveTimerIndex(newIndex);
+                            if (!running) setQueueRunning(true);
                             newQueue[newIndex].status = CONST.TimerStatuses.PLAY;
                         } else {
-                            setActiveTimerIndex(null); // End of the queue
-                            if (isRunning) setIsRunning(false);
+                            setQueueActiveTimerIndex(-1); // End of the queue
+                            if (running) setQueueRunning(false);
                         }
                     }
                 }
 
-                setTimersQueue(newQueue);
+                setTimersToQueue(newQueue);
             }
         }, 1000);
 
         return () => {
             if (timer) clearInterval(timer); // Clean up the timer
         };
-    }, [isRunning, activeTimerIndex, timersQueue]);
+    }, [running, activeTimerIndex, timersQueue]);
 
     // Start queue function now selects the first timer and starts it
     const startQueue = () => {
         if (timersQueue.length > 0) {
-            setActiveTimerIndex(0);
-            setIsRunning(true);
-            setTime(0);
+            setQueueActiveTimerIndex(0);
+            setQueueRunning(true);
+            setQueuePassedTime(0);
 
             let newTimersQueue = [...timersQueue];
             newTimersQueue[0] = {
                 ...timersQueue[0],
                 status: CONST.TimerStatuses.PLAY,
             };
-            setTimersQueue(newTimersQueue);
+            setTimersToQueue(newTimersQueue);
         } else {
             setErrorMessage('No timers in the queue to start!');
         }
@@ -136,15 +153,15 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
 
     const stopQueue = () => {
         if (timersQueue.length > 0) {
-            setIsRunning(!isRunning);
+            setQueueRunning(!running);
         } else {
             setErrorMessage('No timers in the queue to start!');
         }
     };
 
     const resetQueue = () => {
-        setTime(0);
-        setIsRunning(false);
+        setQueuePassedTime(0);
+        setQueueRunning(false);
 
         let newTimersQueue = [...timersQueue];
         newTimersQueue.forEach(timer => {
@@ -152,65 +169,71 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
             timer.passedTime = 0;
             timer.status = CONST.TimerStatuses.READY;
         });
-        setTimersQueue(newTimersQueue);
+        setTimersToQueue(newTimersQueue);
+    };
+
+    const setTimersToQueue = (queue: Timer[], needLocalStorageChange: boolean = true) => {
+        setTimersQueue(queue);
+        if (needLocalStorageChange) {
+            localStorage.setItem(CONST.StorageKeys.QUEUE, JSON.stringify(queue));
+        }
+    };
+
+    const setQueueRunning = (running: boolean, needLocalStorageChange: boolean = true) => {
+        setRunning(running);
+        if (needLocalStorageChange) {
+            localStorage.setItem(CONST.StorageKeys.RUNNING, JSON.stringify(running));
+        }
+    };
+
+    const setQueueActiveTimerIndex = (index: number, needLocalStorageChange: boolean = true) => {
+        setActiveTimerIndex(index);
+        if (needLocalStorageChange) {
+            localStorage.setItem(CONST.StorageKeys.ACTIVE_TIMER_INDEX, JSON.stringify(index));
+        }
+    };
+
+    const setQueuePassedTime = (time: number, needLocalStorageChange: boolean = true) => {
+        setTime(time);
+        if (needLocalStorageChange) {
+            localStorage.setItem(CONST.StorageKeys.TIME, JSON.stringify(time));
+        }
     };
 
     // Function to save the values that are added
     const addTimerToQueue = (timer: Timer) => {
-        setTimersQueue(prevQueue => [...prevQueue, timer]);
+        // setTimersQueue(prevQueue => [...prevQueue, timer]);
+        const newTimersQueue = [...timersQueue, timer];
+        setTimersToQueue(newTimersQueue);
     };
 
     // Function to remove values from the Queue
     const removeLastTimerFromQueue = () => {
-        setTimersQueue(prevQueue => prevQueue.slice(0, prevQueue.length - 1));
+        // setTimersQueue(prevQueue => prevQueue.slice(0, prevQueue.length - 1));
+        const newTimersQueue = [...timersQueue].slice(0, timersQueue.length - 1);
+        setTimersToQueue(newTimersQueue);
     };
 
     // Function to remove all timers from the queue
     const removeAllTimersFromQueue = () => {
-        setTimersQueue([]);
-    };
-
-    // Play or pause the timer
-    const handlePlayPause = () => {
-        if (time > 0) {
-            setIsRunning(prev => !prev); // Toggle the running state for both modes
-        } else {
-            setErrorMessage('Please set a valid time before starting!');
-        }
-    };
-
-    // Set the timer manually
-    const setTimer = (minutes: number, seconds: number) => {
-        const totalSeconds = minutes * 60 + seconds;
-        if (totalSeconds > 0) {
-            setTime(totalSeconds);
-            setErrorMessage('');
-        } else {
-            setErrorMessage('Please provide a valid time!');
-        }
-    };
-
-    const setTimerDirect = (seconds: number) => {
-        setTime(seconds);
+        setTimersToQueue([]);
     };
 
     return (
         <TimerContext.Provider
             value={{
                 time,
-                isRunning,
+                running,
+                changed,
                 errorMessage,
-                handlePlayPause,
-                setTimer,
                 timersQueue,
                 addTimerToQueue,
                 removeLastTimerFromQueue,
                 removeAllTimersFromQueue,
-                setIsRunning,
                 startQueue,
                 stopQueue,
                 resetQueue,
-                setTimerDirect,
+                setTimersToQueue,
             }}
         >
             {children}
