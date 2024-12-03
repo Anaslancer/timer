@@ -19,6 +19,7 @@ interface TimerContextType {
     changed: boolean;
     errorMessage: string;
     timersQueue: Timer[];
+    activeTimerIndex: number;
     startQueue: () => void;
     stopQueue: () => void;
     resetQueue: () => void;
@@ -26,6 +27,7 @@ interface TimerContextType {
     addTimerToQueue: (timer: Timer) => void;
     removeLastTimerFromQueue: () => void;
     removeAllTimersFromQueue: () => void;
+    removeTimerFromQueue: (index: number) => void;
 }
 
 // Define the type for the TimerProvider props
@@ -39,6 +41,7 @@ const defaultContextValue: TimerContextType = {
     changed: false,
     errorMessage: '',
     timersQueue: [],
+    activeTimerIndex: -1,
     startQueue: () => {},
     stopQueue: () => {},
     resetQueue: () => {},
@@ -46,6 +49,7 @@ const defaultContextValue: TimerContextType = {
     addTimerToQueue: () => {},
     removeLastTimerFromQueue: () => {},
     removeAllTimersFromQueue: () => {},
+    removeTimerFromQueue: () => {},
 };
 
 const TimerContext = createContext<TimerContextType>(defaultContextValue);
@@ -118,7 +122,7 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
                             if (!running) setQueueRunning(true);
                             newQueue[newIndex].status = CONST.TimerStatuses.PLAY;
                         } else {
-                            setQueueActiveTimerIndex(-1); // End of the queue
+                            // setQueueActiveTimerIndex(-1); // End of the queue
                             if (running) setQueueRunning(false);
                         }
                     }
@@ -162,6 +166,7 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
     const resetQueue = () => {
         setQueuePassedTime(0);
         setQueueRunning(false);
+        setQueueActiveTimerIndex(-1);
 
         let newTimersQueue = [...timersQueue];
         newTimersQueue.forEach(timer => {
@@ -207,6 +212,13 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
         setTimersToQueue(newTimersQueue);
     };
 
+    // Function to remove a timer from the Queue
+    const removeTimerFromQueue = (index: number) => {
+        const newTimersQueue = [...timersQueue];
+        newTimersQueue.splice(index, 1);
+        setTimersToQueue(newTimersQueue);
+    };
+
     // Function to remove values from the Queue
     const removeLastTimerFromQueue = () => {
         // setTimersQueue(prevQueue => prevQueue.slice(0, prevQueue.length - 1));
@@ -227,9 +239,11 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
                 changed,
                 errorMessage,
                 timersQueue,
+                activeTimerIndex,
                 addTimerToQueue,
                 removeLastTimerFromQueue,
                 removeAllTimersFromQueue,
+                removeTimerFromQueue,
                 startQueue,
                 stopQueue,
                 resetQueue,

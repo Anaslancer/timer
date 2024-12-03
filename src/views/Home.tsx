@@ -12,7 +12,7 @@ const StyledQueueContainer = styled.div`
 `;
 
 const Home = () => {
-    const { time, running, changed, timersQueue, startQueue, stopQueue, resetQueue } = useTimerContext();
+    const { time, running, changed, timersQueue, activeTimerIndex, startQueue, stopQueue, resetQueue, removeTimerFromQueue } = useTimerContext();
 
     // Calculate total time based on the timers in the queue
     const totalTimeInSeconds = timersQueue.reduce((total, timer) => total + (timer.expectedTime + timer.restTime) * timer.round, 0);
@@ -20,7 +20,7 @@ const Home = () => {
     // Save a timer queue to local storage
     const saveQueue = () => {
         localStorage.setItem(CONST.StorageKeys.QUEUE, JSON.stringify(timersQueue));
-    }
+    };
 
     return (
         <div>
@@ -48,6 +48,7 @@ const Home = () => {
                         borderRadius: '6px',
                         backgroundColor: '#777777',
                         left: 0,
+                        maxWidth: '100%',
                         width: !totalTimeInSeconds ? 0 : `${(time / totalTimeInSeconds) * 100}%`,
                     }}
                 />
@@ -55,7 +56,13 @@ const Home = () => {
             <StyledQueueContainer>
                 {timersQueue.map((timer, index) => (
                     <div key={index}>
-                        <WorkoutDisplay timer={timer} />
+                        <WorkoutDisplay 
+                            timer={timer} 
+                            running={running} 
+                            index={index} 
+                            activeIndex={activeTimerIndex} 
+                            removeTimer={() => removeTimerFromQueue(index)}
+                        />
                     </div>
                 ))}
             </StyledQueueContainer>

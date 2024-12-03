@@ -8,6 +8,7 @@ interface StyledWorkoutDisplayProps {
 }
 
 const StyledWorkoutDisplay = styled.div<StyledWorkoutDisplayProps>`
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -36,6 +37,21 @@ const StyledWorkoutDisplay = styled.div<StyledWorkoutDisplayProps>`
   }
 `;
 
+const CloseButton = styled.button`
+  font-size: 1rem;
+  font-weight: bold;
+  color: #333;
+  opacity: ${(props) => props.disabled ? 0.6 : 1};
+  position: absolute;
+  right: 6px;
+  top: 4px;
+  border: none;
+  background-color: transparent;
+  margin: 0;
+  padding: 2px;
+  cursor: ${(props) => props.disabled ? 'normal' : 'pointer'};
+`;
+
 const StyledName = styled.div`
   font-size: 1rem;
   font-weight: normal;
@@ -44,9 +60,13 @@ const StyledName = styled.div`
 
 interface WorkoutDisplayProps {
   timer: Timer;
+  running: boolean;
+  index: number;
+  activeIndex: number;
+  removeTimer: () => void;
 }
 
-const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ timer }) => {
+const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ timer, running, index, activeIndex, removeTimer }) => {
   const displayTime = () => {
     if (timer.status === CONST.TimerStatuses.COMPLETE) {
       return timer.mode === CONST.TimerTypes.STOPWATCH ? '1:00' : '0:00';
@@ -66,6 +86,12 @@ const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ timer }) => {
 
   return (
     <StyledWorkoutDisplay status={timer.status} resting={timer.isResting.toString()}>
+      <CloseButton 
+        disabled={running || (index <= activeIndex)} 
+        onClick={removeTimer}
+      >
+        X
+      </CloseButton>
       <StyledName>{timer.mode}</StyledName>
       { displayTime() }
     </StyledWorkoutDisplay>
