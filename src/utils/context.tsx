@@ -83,7 +83,7 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
     if (activeTimerIndex === -1 && strActiveIndex) {
         setActiveTimerIndex(JSON.parse(strActiveIndex));
     }
-  }, [localStorage]);
+  }, [timersQueue, time, activeTimerIndex]);
 
   // Timer logic for countdown and stopwatch
   useEffect(() => {
@@ -133,7 +133,7 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
     return () => {
       if (timer) clearInterval(timer); // Clean up the timer
     };
-  }, [running, activeTimerIndex, timersQueue]);
+  }, [time, running, activeTimerIndex, timersQueue]);
 
   // Start queue function now selects the first timer and starts it
   const startQueue = () => {
