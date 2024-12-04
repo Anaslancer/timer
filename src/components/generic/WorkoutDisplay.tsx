@@ -1,10 +1,13 @@
 import styled from 'styled-components';
+import {CSS} from '@dnd-kit/utilities';
 import { Timer } from '../../utils/context';
 import CONST, { TimerStatusType } from '../../utils/CONST';
+import { useSortable } from "@dnd-kit/sortable";
 
 interface StyledWorkoutDisplayProps {
-  status: TimerStatusType;
-  resting: string;
+  status?: TimerStatusType;
+  resting?: string;
+  visibleDraggingCursor?: boolean;
 }
 
 const StyledWorkoutDisplay = styled.div<StyledWorkoutDisplayProps>`
@@ -28,8 +31,9 @@ const StyledWorkoutDisplay = styled.div<StyledWorkoutDisplayProps>`
   color: #333;
   margin-bottom: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
-
+  // transition: background-color 0.3s ease, border-color 0.3s ease;
+  cursor: ${({ visibleDraggingCursor }) => (visibleDraggingCursor ? "grabbing" : "grab")};
+  
   @media (max-width: 480px) {
     width: 120px;
     height: 80px;
@@ -59,14 +63,32 @@ const StyledName = styled.div`
 `;
 
 interface WorkoutDisplayProps {
+  transformable?: boolean,
   timer: Timer;
   running: boolean;
-  index: number;
-  activeIndex: number;
-  removeTimer: () => void;
+  index?: number;
+  activeIndex?: number;
+  visibleDraggingCursor?: boolean;
+  removeTimer?: () => void;
 }
 
-const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ timer, running, index, activeIndex, removeTimer }) => {
+const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ transformable, timer, running, index, activeIndex, removeTimer, visibleDraggingCursor }) => {
+  const {
+    attributes,
+    listeners,
+    transform,
+    transition,
+    setNodeRef,
+    isDragging
+  } = useSortable({
+    id: timer.id
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition: transition
+  };
+
   const displayTime = () => {
     if (timer.status === CONST.TimerStatuses.COMPLETE) {
       return timer.mode === CONST.TimerTypes.STOPWATCH ? '1:00' : '0:00';
@@ -84,17 +106,35 @@ const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ timer, running, index, 
     return 'Time is Up!'
   }
 
+  const onClickRemove = (e: any) => {
+    console.log("zzz e", e);
+    removeTimer();
+  }
+
   return (
-    <StyledWorkoutDisplay status={timer.status} resting={timer.isResting.toString()}>
-      <CloseButton 
-        disabled={running || (index <= activeIndex)} 
-        onClick={removeTimer}
-      >
-        X
-      </CloseButton>
-      <StyledName>{timer.mode}</StyledName>
-      { displayTime() }
-    </StyledWorkoutDisplay>
+    <div ref={setNodeRef} style={transformable ? style : {}}>
+      {
+        isDragging ? (
+          <StyledWorkoutDisplay style={{opacity: 0.3}} />
+        ) : (
+          <StyledWorkoutDisplay 
+            status={timer.status} 
+            resting={timer.isResting.toString()}
+            visibleDraggingCursor={visibleDraggingCursor}
+            {...attributes} {...listeners}
+          >
+            <CloseButton 
+              disabled={running || ((index ?? 0) <= (activeIndex ?? 0))} 
+              onClick={(e) => onClickRemove(e)}
+            >
+              X
+            </CloseButton>
+            <StyledName>{timer.mode}</StyledName>
+            { displayTime() }
+          </StyledWorkoutDisplay>
+        )
+      }
+    </div>
   );
 };
 

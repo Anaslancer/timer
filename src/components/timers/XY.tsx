@@ -36,6 +36,7 @@ const XY = () => {
         if (!activeTime) return;
 
         const timer: Timer = {
+            id: new Date().valueOf().toString(),
             mode: CONST.TimerTypes.XY,
             expectedTime: activeTime,
             status: CONST.TimerStatuses.READY,

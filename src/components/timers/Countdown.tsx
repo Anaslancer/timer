@@ -30,6 +30,7 @@ const Countdown = () => {
         if (!activeTime) return;
 
         const timer: Timer = {
+            id: new Date().valueOf().toString(),
             mode: CONST.TimerTypes.COUNTDOWN,
             expectedTime: activeTime,
             status: CONST.TimerStatuses.READY,

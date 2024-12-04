@@ -9,6 +9,7 @@ const Stopwatch = () => {
 
     const addTimer = () => {
         const timer: Timer = {
+            id: new Date().valueOf().toString(),
             mode: CONST.TimerTypes.STOPWATCH,
             expectedTime: 60,
             status: CONST.TimerStatuses.READY,

@@ -7,7 +7,7 @@ interface MinSec {
 }
 
 export const timerToString = (timer: Timer) => {
-    const time: MinSec = secToMin(timer.expectedTime);
+    const time: MinSec = secToMin(timer.expectedTime ?? 0);
     if (timer.mode === CONST.TimerTypes.STOPWATCH || timer.mode === CONST.TimerTypes.COUNTDOWN) {
         return timer.mode + " timer (" + timeToString(time.min, time.sec) + ")";
     } else if (timer.mode === CONST.TimerTypes.XY) {
