@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import DisplayWindow from '../generic/DisplayWindow';
 import InputField from '../generic/Input';
+import InputFieldsContainer from '../generic/InputFieldsContainer';
 import { Timer, useTimerContext } from '../../utils/context';
 import { timeToSec } from '../../utils/helpers';
 import CONST from '../../utils/CONST';
@@ -12,6 +13,7 @@ const Tabata = () => {
     const [repititions, setRepetitions] = useState(1);
     const [restMinutes, setRestMinutes] = useState(0);
     const [restSeconds, setRestSeconds] = useState(0);
+    const [description, setDescription] = useState('');
 
     const { addTimerToQueue: addCurrentTimerToQueue } = useTimerContext();
 
@@ -48,6 +50,7 @@ const Tabata = () => {
             passedTime: 0,
             passedRound: 0,
             isResting: false,
+            description,
         }
 
         addCurrentTimerToQueue(timer);
@@ -64,12 +67,12 @@ const Tabata = () => {
             }}
         >
             <DisplayWindow time={timeToSec(minutes, seconds)} />
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '10px' }}>
+            <InputFieldsContainer>
                 <InputField value={minutes} onChange={handleMinuteChange} placeholder="Min:" min={0} />
                 <InputField value={seconds} onChange={handleSecondChange} placeholder="Sec:" min={0} max={59} />
                 <InputField value={repititions} onChange={handleRepititionsChange} placeholder="Reps:" min={1} />
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '10px' }}>
+            </InputFieldsContainer>
+            <InputFieldsContainer>
                 <InputField
                     value={restMinutes}
                     onChange={e => setRestMinutes(Math.max(0, Number.parseInt(e.target.value, 10) || 0))}
@@ -86,7 +89,16 @@ const Tabata = () => {
                     min={0}
                     max={59}
                 />
-            </div>
+            </InputFieldsContainer>
+            <InputFieldsContainer>
+                <InputField 
+                    value={description} 
+                    onChange={(e:any) => setDescription(e.target.value)} 
+                    placeholder="Description:" 
+                    inputStyle={{ width: '180px' }}
+                    type="text"
+                />
+            </InputFieldsContainer>
             <button onClick={addTimer}>Add Timer</button>
         </div>
     );

@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled, { CSSProperties } from 'styled-components';
 
 const StyledInput = styled.input<{ running: string }>`
   padding: 5px;
@@ -12,13 +12,15 @@ const StyledDescription = styled.label`
 `;
 
 interface InputProps {
-    value: number;
+    value: number | string | undefined;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     disabled?: boolean;
     running?: boolean;
     placeholder?: string;
     min?: number;
     max?: number;
+    inputStyle?: CSSProperties;
+    type?: string;
 }
 
 const InputField: React.FC<InputProps> = ({
@@ -29,12 +31,14 @@ const InputField: React.FC<InputProps> = ({
     placeholder = '', // Default value
     min = 0, // Default value
     max = 100, // Default value
+    type = "number",
+    inputStyle,
   }) => {
     return (
         <div style={{ display: 'flex', alignItems: 'center' }}>
             <StyledDescription htmlFor={placeholder}>{placeholder}</StyledDescription>
             <StyledInput 
-                type="number" 
+                type={type} 
                 value={value} 
                 onChange={onChange} 
                 disabled={disabled} 
@@ -42,6 +46,7 @@ const InputField: React.FC<InputProps> = ({
                 placeholder={placeholder} 
                 min={min} 
                 max={max} 
+                style={inputStyle}
             />
         </div>
     );

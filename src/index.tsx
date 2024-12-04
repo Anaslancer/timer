@@ -1,3 +1,5 @@
+"use client";
+
 import styled from 'styled-components';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';

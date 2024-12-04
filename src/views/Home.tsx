@@ -33,33 +33,49 @@ const defaultTimer: Timer = {
     passedTime: 0,
     passedRound: 0,
     isResting: false,
+    description: '',
 }
 
 const Home = () => {
-  const { time, running, changed, timersQueue, activeTimerIndex, startQueue, stopQueue, resetQueue, removeTimerFromQueue, setTimersToQueue } = useTimerContext();
+  const { 
+    time, 
+    running, 
+    changed, 
+    timersQueue, 
+    activeTimerIndex, 
+    startQueue, 
+    stopQueue, 
+    resetQueue, 
+    removeTimerFromQueue, 
+    setTimersToQueue 
+  } = useTimerContext();
 
   const [activeId, setActiveId] = useState<string | null>();
+  const [selectedTimerIndexForEditing, setTimerIndexForEditing] = useState(-1);
 
   const items = useMemo(() => timersQueue?.map(({ id }) => id), [timersQueue]);
 
-  const selectedTimer = useMemo(() => {
+  const selectedTimerForDragging = useMemo(() => {
     if (!activeId) {
       return null;
     }
     return timersQueue.find(({ id }) => id === activeId);
   }, [activeId, timersQueue]);
-  
+
+  // Calculate total time based on the timers in the queue
+  const totalTimeInSeconds = useMemo(() => timersQueue.reduce((total, timer) => total + (timer.expectedTime + timer.restTime) * timer.round, 0), [timersQueue]);
+
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {}),
     useSensor(KeyboardSensor, {})
   );
 
-  function handleDragStart(event: DragStartEvent) {
+  const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
-  }
+  };
 
-  function handleDragEnd(event: DragEndEvent) {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
     if (active.id !== over?.id) {
@@ -71,14 +87,11 @@ const Home = () => {
     }
 
     setActiveId(null);
-  }
+  };
 
-  function handleDragCancel() {
+  const handleDragCancel = () => {
     setActiveId(null);
-  }
-
-  // Calculate total time based on the timers in the queue
-  const totalTimeInSeconds = timersQueue.reduce((total, timer) => total + (timer.expectedTime + timer.restTime) * timer.round, 0);
+  };
 
   // Save a timer queue to local storage
   const saveQueue = () => {
@@ -134,6 +147,7 @@ const Home = () => {
                 key={index}
                 activeIndex={activeTimerIndex} 
                 removeTimer={() => removeTimerFromQueue(index)}
+                editTimer={() => setTimerIndexForEditing(index)}
               />
             ))}
           </SortableContext>
@@ -141,9 +155,9 @@ const Home = () => {
         <DragOverlay>
           {activeId != null && (
             <WorkoutDisplay 
-                timer={selectedTimer || defaultTimer} 
-                running={running} 
-                visibleDraggingCursor={true}
+              timer={selectedTimerForDragging || defaultTimer} 
+              running={running} 
+              visibleDraggingCursor={true} 
             />
           )}
         </DragOverlay>

@@ -16,7 +16,8 @@ const StyledWorkoutDisplay = styled.div<StyledWorkoutDisplayProps>`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  padding: 16px 8px;
   width: 160px;
   height: 100px;
   gap: 10px;
@@ -42,14 +43,12 @@ const StyledWorkoutDisplay = styled.div<StyledWorkoutDisplayProps>`
   }
 `;
 
-const CloseButton = styled.button`
+const IconButton = styled.button`
   font-size: 1rem;
   font-weight: bold;
   color: #333;
   opacity: ${(props) => props.disabled ? 0.6 : 1};
   position: absolute;
-  right: 6px;
-  top: 4px;
   border: none;
   background-color: transparent;
   margin: 0;
@@ -57,10 +56,27 @@ const CloseButton = styled.button`
   cursor: ${(props) => props.disabled ? 'normal' : 'pointer'};
 `;
 
+const CloseButton = styled(IconButton)`
+  left: 8px;
+  top: 4px;
+`;
+
+const EditButton = styled(IconButton)`
+  right: 8px;
+  top: 4px;
+  transform: scaleX(-1);
+`;
+
 const StyledName = styled.div`
   font-size: 1rem;
-  font-weight: normal;
+  font-weight: semi-bold;
   color: #666;
+`;
+
+const StyledDescription = styled.div`
+  font-size: 0.8rem;
+  font-weight: normal;
+  color: #777;
 `;
 
 interface WorkoutDisplayProps {
@@ -71,9 +87,19 @@ interface WorkoutDisplayProps {
   activeIndex?: number;
   visibleDraggingCursor?: boolean;
   removeTimer?: () => void;
+  editTimer?: () => void;
 }
 
-const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ transformable, timer, running, index, activeIndex, removeTimer, visibleDraggingCursor }) => {
+const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ 
+  transformable, 
+  timer, 
+  running, 
+  index, 
+  activeIndex, 
+  visibleDraggingCursor,
+  removeTimer, 
+  editTimer,
+}) => {
   const {
     attributes,
     listeners,
@@ -92,7 +118,7 @@ const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ transformable, timer, r
     transition: transition
   };
 
-  const displayTime = () => {
+  const displayTime = useMemo(() => {
     if (timer.status === CONST.TimerStatuses.COMPLETE) {
       return timer.mode === CONST.TimerTypes.STOPWATCH ? '1:00' : '0:00';
     }
@@ -106,8 +132,8 @@ const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ transformable, timer, r
       return `${Math.floor((expectedTime - timer.passedTime) / 60)}:${String((expectedTime - timer.passedTime) % 60).padStart(2, '0')}`;
     }
     
-    return 'Time is Up!'
-  }
+    return 'Time is Up!';
+  }, [timer]);
 
   return (
     <div ref={setNodeRef} style={transformable ? style : {}}>
@@ -124,15 +150,11 @@ const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ transformable, timer, r
               {...draggable && {...attributes, ...listeners}}
             >
               <StyledName>{timer.mode}</StyledName>
-              { displayTime() }
+              { timer.description && <StyledDescription>{timer.description}</StyledDescription> }
+              { displayTime }
             </StyledWorkoutDisplay>
-            <CloseButton 
-              disabled={!draggable} 
-              onClick={removeTimer}
-              id="close-button"
-            >
-              X
-            </CloseButton>
+            <CloseButton title="Remove" disabled={!draggable} onClick={removeTimer}>&#128465;</CloseButton>
+            <EditButton title="Edit" disabled={!draggable} onClick={editTimer}>&#9998;</EditButton>
           </div>
         )
       }

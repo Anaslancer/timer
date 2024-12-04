@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import DisplayWindow from '../generic/DisplayWindow';
 import InputField from '../generic/Input';
+import InputFieldsContainer from '../generic/InputFieldsContainer';
 import { Timer, useTimerContext } from '../../utils/context';
 import CONST from '../../utils/CONST';
 import { timeToSec } from '../../utils/helpers';
@@ -10,6 +11,7 @@ const XY = () => {
     const [minutes, setMinutes] = useState(0);
     const [seconds, setSeconds] = useState(0);
     const [repititions, setRepetitions] = useState(1);
+    const [description, setDescription] = useState('');
 
     const { addTimerToQueue: addCurrentTimerToQueue } = useTimerContext();
 
@@ -45,6 +47,7 @@ const XY = () => {
             passedRound: 0,
             restTime: 0,
             isResting: false,
+            description,
         }
 
         addCurrentTimerToQueue(timer);
@@ -61,7 +64,7 @@ const XY = () => {
             }}
         >
             <DisplayWindow time={timeToSec(minutes, seconds)} />
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '10px' }}>
+            <InputFieldsContainer>
                 <InputField 
                     value={minutes} 
                     onChange={handleMinuteChange} 
@@ -81,7 +84,16 @@ const XY = () => {
                     placeholder="Reps:" 
                     min={1} 
                 />
-            </div>
+            </InputFieldsContainer>
+            <InputFieldsContainer>
+                <InputField 
+                    value={description} 
+                    onChange={(e:any) => setDescription(e.target.value)} 
+                    placeholder="Description:" 
+                    inputStyle={{ width: '180px' }}
+                    type="text"
+                />
+            </InputFieldsContainer>
             <button onClick={addTimer}>Add Timer</button>
         </div>
     );

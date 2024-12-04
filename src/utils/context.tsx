@@ -11,6 +11,7 @@ export interface Timer {
   passedTime: number;
   passedRound: number;
   isResting: boolean;
+  description: string;
 }
 
 // Define the types for the context state and actions
