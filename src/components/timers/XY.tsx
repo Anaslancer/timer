@@ -1,19 +1,37 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import DisplayWindow from '../generic/DisplayWindow';
 import InputField from '../generic/Input';
 import InputFieldsContainer from '../generic/InputFieldsContainer';
+import TimerContainer from '../generic/TimerContainer';
 import { Timer, useTimerContext } from '../../utils/context';
+import { TimerComponentProps } from './Countdown';
 import CONST from '../../utils/CONST';
-import { timeToSec } from '../../utils/helpers';
+import { secToMin, timeToSec } from '../../utils/helpers';
 
 //sets the states for variables that need to be followed
-const XY = () => {
+const XY: React.FC<TimerComponentProps> = ({ timer, close }) => {
     const [minutes, setMinutes] = useState(0);
     const [seconds, setSeconds] = useState(0);
     const [repititions, setRepetitions] = useState(1);
     const [description, setDescription] = useState('');
 
-    const { addTimerToQueue: addCurrentTimerToQueue } = useTimerContext();
+    const { timersQueue, addTimerToQueue, setTimersToQueue } = useTimerContext();
+
+    useEffect(() => {
+        if (!timer) return;
+
+        const {expectedTime, round, description} = timer;
+
+        if (expectedTime) {
+            const {min, sec} = secToMin(expectedTime);
+            setMinutes(min);
+            setSeconds(sec);
+        }
+
+        if (round) setRepetitions(round);
+
+        if (description) setDescription(description);
+    }, [timer]);
 
     const handleMinuteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = Math.max(0, Number.parseInt(e.target.value, 10) || 0);
@@ -50,19 +68,31 @@ const XY = () => {
             description,
         }
 
-        addCurrentTimerToQueue(timer);
+        addTimerToQueue(timer);
+    }
+
+    const saveTimer = () => {
+        const activeTime = timeToSec(minutes, seconds);
+
+        if (!activeTime || !timer) return;
+
+        const newTimer: Timer = {
+            ...timer,
+            expectedTime: activeTime,
+            round: repititions,
+            description: description,
+        }
+
+        const newTimersQueue = [...timersQueue];
+        const index = timersQueue.findIndex((t) => t.id === timer.id);
+        newTimersQueue[index] = newTimer;
+
+        setTimersToQueue(newTimersQueue);
+        if (close) close();
     }
 
     return (
-        <div
-            style={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100vh',
-            }}
-        >
+        <TimerContainer>
             <DisplayWindow time={timeToSec(minutes, seconds)} />
             <InputFieldsContainer>
                 <InputField 
@@ -94,8 +124,8 @@ const XY = () => {
                     type="text"
                 />
             </InputFieldsContainer>
-            <button onClick={addTimer}>Add Timer</button>
-        </div>
+            <button onClick={timer ? saveTimer : addTimer}>{timer ? "Save" : "Add Timer"}</button>
+        </TimerContainer>
     );
 };
 

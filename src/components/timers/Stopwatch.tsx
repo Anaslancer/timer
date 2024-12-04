@@ -1,15 +1,25 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import DisplayWindow from '../generic/DisplayWindow';
 import Loading from '../generic/Loading';
 import InputFieldsContainer from '../generic/InputFieldsContainer';
+import TimerContainer from '../generic/TimerContainer';
 import InputField from '../generic/Input';
 import { Timer, useTimerContext } from '../../utils/context';
 import CONST from '../../utils/CONST';
+import { TimerComponentProps } from './Countdown';
 
-const Stopwatch = () => {
-    const { addTimerToQueue: addCurrentTimerToQueue } = useTimerContext();
+const Stopwatch: React.FC<TimerComponentProps> = ({ timer, close }) => {
+    const { timersQueue, addTimerToQueue, setTimersToQueue } = useTimerContext();
     
     const [description, setDescription] = useState('');
+
+    useEffect(() => {
+        if (!timer) return;
+
+        const {description} = timer;
+
+        if (description) setDescription(description);
+    }, [timer]);
 
     const addTimer = () => {
         const timer: Timer = {
@@ -24,20 +34,28 @@ const Stopwatch = () => {
             isResting: false,
             description,
         }
-        addCurrentTimerToQueue(timer);
+        addTimerToQueue(timer);
+    }
+
+    const saveTimer = () => {
+        if (!timer) return;
+
+        const newTimer: Timer = {
+            ...timer,
+            description: description,
+        }
+
+        const newTimersQueue = [...timersQueue];
+        const index = timersQueue.findIndex((t) => t.id === timer.id);
+        newTimersQueue[index] = newTimer;
+
+        setTimersToQueue(newTimersQueue);
+        if (close) close();
     }
 
     // returns the display window
     return (
-        <div
-            style={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100vh',
-            }}
-        >
+        <TimerContainer>
             <DisplayWindow time={60} />
             <InputFieldsContainer>
                 <InputField 
@@ -49,9 +67,9 @@ const Stopwatch = () => {
                 />
             </InputFieldsContainer>
             <Loading.ActivityButtonContainer>
-                <button onClick = {addTimer}>Add Timer</button>
+                <button onClick={timer ? saveTimer : addTimer}>{timer ? "Save" : "Add Timer"}</button>
             </Loading.ActivityButtonContainer>
-        </div>
+        </TimerContainer>
     );
 };
 

@@ -119,17 +119,17 @@ const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({
   };
 
   const displayTime = useMemo(() => {
-    if (timer.status === CONST.TimerStatuses.COMPLETE) {
-      return timer.mode === CONST.TimerTypes.STOPWATCH ? '1:00' : '0:00';
-    }
+    const { status, mode, expectedTime, passedTime, restTime, isResting } = timer;
 
-    if (timer.mode === CONST.TimerTypes.STOPWATCH) {
-      return `${Math.floor(timer.passedTime / 60)}:${String(timer.passedTime % 60).padStart(2, '0')}`;
-    } else if (timer.mode === CONST.TimerTypes.COUNTDOWN || timer.mode === CONST.TimerTypes.XY) {
-      return `${Math.floor((timer.expectedTime - timer.passedTime) / 60)}:${String((timer.expectedTime - timer.passedTime) % 60).padStart(2, '0')}`;
-    } else if (timer.mode === CONST.TimerTypes.TABATA) {
-      const expectedTime = timer.isResting ? timer.restTime ?? 0 : timer.expectedTime;
-      return `${Math.floor((expectedTime - timer.passedTime) / 60)}:${String((expectedTime - timer.passedTime) % 60).padStart(2, '0')}`;
+    if (status === CONST.TimerStatuses.COMPLETE) {
+      return mode === CONST.TimerTypes.STOPWATCH ? '1:00' : '0:00';
+    } else if (mode === CONST.TimerTypes.STOPWATCH) {
+      return `${Math.floor(passedTime / 60)}:${String(passedTime % 60).padStart(2, '0')}`;
+    } else if (mode === CONST.TimerTypes.COUNTDOWN || mode === CONST.TimerTypes.XY) {
+      return `${Math.floor((expectedTime - passedTime) / 60)}:${String((expectedTime - passedTime) % 60).padStart(2, '0')}`;
+    } else if (mode === CONST.TimerTypes.TABATA) {
+      const newExpectedTime = isResting ? restTime ?? 0 : expectedTime;
+      return `${Math.floor((newExpectedTime - passedTime) / 60)}:${String((newExpectedTime - passedTime) % 60).padStart(2, '0')}`;
     }
     
     return 'Time is Up!';

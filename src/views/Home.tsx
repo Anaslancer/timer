@@ -16,6 +16,8 @@ import { arrayMove, SortableContext } from '@dnd-kit/sortable';
 import WorkoutDisplay from '../components/generic/WorkoutDisplay';
 import { Timer, useTimerContext } from '../utils/context';
 import CONST from '../utils/CONST';
+import Modal from '../components/generic/Modal';
+import TimerEditModal from '../components/modals/TimerEditModal';
 
 const StyledQueueContainer = styled.div`
   display: flex;
@@ -50,6 +52,7 @@ const Home = () => {
     setTimersToQueue 
   } = useTimerContext();
 
+  const [isModalOpen, setModalOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>();
   const [selectedTimerIndexForEditing, setTimerIndexForEditing] = useState(-1);
 
@@ -64,6 +67,14 @@ const Home = () => {
 
   // Calculate total time based on the timers in the queue
   const totalTimeInSeconds = useMemo(() => timersQueue.reduce((total, timer) => total + (timer.expectedTime + timer.restTime) * timer.round, 0), [timersQueue]);
+
+  const openModal = (index: number) => {
+    setModalOpen(true);
+    setTimerIndexForEditing(index);
+  }
+
+  const saveTimer = () => {
+  }
 
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
@@ -147,7 +158,7 @@ const Home = () => {
                 key={index}
                 activeIndex={activeTimerIndex} 
                 removeTimer={() => removeTimerFromQueue(index)}
-                editTimer={() => setTimerIndexForEditing(index)}
+                editTimer={() => openModal(index)}
               />
             ))}
           </SortableContext>
@@ -162,6 +173,12 @@ const Home = () => {
           )}
         </DragOverlay>
       </DndContext>
+      <TimerEditModal 
+        isOpen={isModalOpen} 
+        timer={timersQueue[selectedTimerIndexForEditing]} 
+        onClose={() => setModalOpen(false)} 
+        onSave={() => saveTimer()} 
+      />
     </div>
   );
 };

@@ -58,13 +58,12 @@ const TimerTitle = styled.div`
 const StopWatchButtonContainer = styled.div`
   display: flex;
   gap: 20px;
-  margin-bottom: 20px;
   flex-direction: row;
 `;
 
 const TimerDisplay = styled.div`
   width: 340px;
-  height: 340px;
+  height: 340px !important;
   background-color: #e0e0e0;
   border: 2px solid #ccc;
   border-radius: 50%;
@@ -74,7 +73,6 @@ const TimerDisplay = styled.div`
   font-size: 1.5rem;
   font-weight: bold;
   color: #333;
-  margin-bottom: 20px;
 `;
 
 //Toggles between timer based on the button selected.
@@ -91,7 +89,7 @@ const TimersView = () => {
     ];
 
     return (
-        <TimersContainer key='test'>
+        <TimersContainer>
             <TimerDisplay>{timers.map(timer => (activeTimer === timer.title ? timer.C : null))}</TimerDisplay>
             <StopWatchButtonContainer>
                 {
@@ -115,8 +113,8 @@ const TimersView = () => {
                     <button onClick={removeLastTimerFromQueue}>Remove Last Timer</button>
                     <button onClick={removeAllTimersFromQueue}>Remove All Timers</button>
                 </div>
-                <h3>Timer Queue</h3>
-                <ul>
+                <h3 style={{marginBottom: '0.5rem', marginTop: '0.5rem'}}>Timer Queue</h3>
+                <ul style={{marginBottom: '0.5rem', marginTop: '0.5rem', maxHeight: '80px', overflow: 'auto'}}>
                     {timersQueue.length === 0 ? (
                         <li>No timers in the queue</li>
                     ) : (
