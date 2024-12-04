@@ -118,8 +118,8 @@ const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({
     transition: transition
   };
 
-  const displayTime = useMemo(() => {
-    const { status, mode, expectedTime, passedTime, restTime, isResting } = timer;
+  const displayTime = () => {
+    const { status, mode, expectedTime, restTime, passedTime, isResting } = timer;
 
     if (status === CONST.TimerStatuses.COMPLETE) {
       return mode === CONST.TimerTypes.STOPWATCH ? '1:00' : '0:00';
@@ -132,8 +132,8 @@ const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({
       return `${Math.floor((newExpectedTime - passedTime) / 60)}:${String((newExpectedTime - passedTime) % 60).padStart(2, '0')}`;
     }
     
-    return 'Time is Up!';
-  }, [timer]);
+    return 'Time is Up!'
+  }
 
   return (
     <div ref={setNodeRef} style={transformable ? style : {}}>
@@ -151,7 +151,7 @@ const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({
             >
               <StyledName>{timer.mode}</StyledName>
               { timer.description && <StyledDescription>{timer.description}</StyledDescription> }
-              { displayTime }
+              { displayTime() }
             </StyledWorkoutDisplay>
             <CloseButton title="Remove" disabled={!draggable} onClick={removeTimer}>&#128465;</CloseButton>
             <EditButton title="Edit" disabled={!draggable} onClick={editTimer}>&#9998;</EditButton>

@@ -1,5 +1,6 @@
 import styled from 'styled-components';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
     closestCenter,
     DndContext,
@@ -14,10 +15,9 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove, SortableContext } from '@dnd-kit/sortable';
 import WorkoutDisplay from '../components/generic/WorkoutDisplay';
+import TimerEditModal from '../components/modals/TimerEditModal';
 import { Timer, useTimerContext } from '../utils/context';
 import CONST from '../utils/CONST';
-import Modal from '../components/generic/Modal';
-import TimerEditModal from '../components/modals/TimerEditModal';
 
 const StyledQueueContainer = styled.div`
   display: flex;
@@ -39,10 +39,11 @@ const defaultTimer: Timer = {
 }
 
 const Home = () => {
+  const navigate = useNavigate();
+  
   const { 
     time, 
     running, 
-    changed, 
     timersQueue, 
     activeTimerIndex, 
     startQueue, 
@@ -51,6 +52,29 @@ const Home = () => {
     removeTimerFromQueue, 
     setTimersToQueue 
   } = useTimerContext();
+
+  const [searchParams] = useSearchParams();
+  const queueStr = searchParams.get('queue');
+  const activeStr = searchParams.get('active');
+  const timeStr = searchParams.get('time');
+
+  useEffect(() => {
+    if (queueStr) {
+      localStorage.setItem(CONST.StorageKeys.QUEUE, queueStr);
+    }
+  }, [queueStr]);
+
+  useEffect(() => {
+    if (activeStr) {
+      localStorage.setItem(CONST.StorageKeys.ACTIVE_TIMER_INDEX, activeStr);
+    }
+  }, [activeStr]);
+
+  useEffect(() => {
+    if (timeStr) {
+      localStorage.setItem(CONST.StorageKeys.TIME, timeStr);
+    }
+  }, [timeStr]);
 
   const [isModalOpen, setModalOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>();
@@ -74,6 +98,7 @@ const Home = () => {
   }
 
   const saveTimer = () => {
+
   }
 
   const sensors = useSensors(
@@ -106,7 +131,13 @@ const Home = () => {
 
   // Save a timer queue to local storage
   const saveQueue = () => {
-    localStorage.setItem(CONST.StorageKeys.QUEUE, JSON.stringify(timersQueue));
+    if (timersQueue.length === 0) return;
+
+    let newURL = '/?queue=' + JSON.stringify(timersQueue);
+    if (activeTimerIndex !== -1) newURL += "&active=" + activeTimerIndex.toString();
+    newURL += "&time=" + time.toString();
+
+    navigate(newURL);
   };
 
   return (
@@ -121,7 +152,7 @@ const Home = () => {
         <button onClick={resetQueue} disabled={timersQueue.length === 0 || time === 0}>
           Reset Queue
         </button>
-        <button onClick={saveQueue} disabled={!changed}>
+        <button onClick={saveQueue}>
           Save Queue
         </button>
       </div>

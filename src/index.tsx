@@ -3,7 +3,7 @@
 import styled from 'styled-components';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Link, Outlet, RouterProvider, createHashRouter } from 'react-router-dom';
+import { Link, Outlet, RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { ErrorBoundary, FallbackProps } from "react-error-boundary";
 import './index.css';
 import { TimerProvider } from './utils/context';
@@ -82,14 +82,15 @@ const PageIndex = () => {
     );
 };
 
-const router = createHashRouter([
+const router = createBrowserRouter([
     {
         path: '/',
         element: <PageIndex />,
         children: [
             {
-                index: true,
+                path: '/',
                 element: <Home />,
+                index: true,
             },
             {
                 path: '/docs',

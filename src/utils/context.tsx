@@ -18,7 +18,6 @@ export interface Timer {
 interface TimerContextType {
   time: number;
   running: boolean;
-  changed: boolean;
   errorMessage: string;
   timersQueue: Timer[];
   activeTimerIndex: number;
@@ -40,7 +39,6 @@ interface TimerProviderProps {
 const defaultContextValue: TimerContextType = {
   time: 0,
   running: false,
-  changed: false,
   errorMessage: '',
   timersQueue: [],
   activeTimerIndex: -1,
@@ -65,7 +63,6 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
   const [timersQueue, setTimersQueue] = useState<Timer[]>([]);
   const [time, setTime] = useState(0); // Time remaining
   const [running, setRunning] = useState(false); // Timer state (running or paused)
-  const [changed, setChanged] = useState(false); // Timer changing state
   const [errorMessage, setErrorMessage] = useState(''); // Error handling
   const [activeTimerIndex, setActiveTimerIndex] = useState(-1); // Track the active timer
 
@@ -86,7 +83,7 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
     if (activeTimerIndex === -1 && strActiveIndex) {
         setActiveTimerIndex(JSON.parse(strActiveIndex));
     }
-  }, []);
+  }, [localStorage]);
 
   // Timer logic for countdown and stopwatch
   useEffect(() => {
@@ -234,7 +231,6 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
       value={{
         time,
         running,
-        changed,
         errorMessage,
         timersQueue,
         activeTimerIndex,
