@@ -1,14 +1,28 @@
+import styled from 'styled-components';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Link, Outlet, RouterProvider, createHashRouter } from 'react-router-dom';
-import { TimerProvider } from './utils/context';
-
+import { ErrorBoundary, FallbackProps } from "react-error-boundary";
 import './index.css';
-import styled from 'styled-components';
+import { TimerProvider } from './utils/context';
 import TimersView from './views/AddTimer';
 import DocumentationView from './views/DocumentationView';
 import Home from './views/Home';
 
+function fallbackRender({ error, resetErrorBoundary }: FallbackProps) {
+    // Call resetErrorBoundary() to reset the error boundary and retry the render.
+    setTimeout(() => {
+        resetErrorBoundary();
+    }, 4000);
+    
+    return (
+        <div role="alert">
+            <p>Something went wrong:</p>
+            <pre style={{ color: "red" }}>{error.message}</pre>
+        </div>
+    );
+}
+  
 const Container = styled.div`
   padding: 20px;
   text-align: center;
@@ -88,9 +102,17 @@ const router = createHashRouter([
 ]);
 
 createRoot(document.getElementById('root')!).render(
-    <StrictMode>
-        <TimerProvider>
-            <RouterProvider router={router} />
-        </TimerProvider>
-    </StrictMode>,
+    <ErrorBoundary
+        fallbackRender={fallbackRender}
+        onReset={(details) => {
+            console.log("zzz onReset", details);
+            // Reset the state of your app so the error doesn't happen again
+        }}
+    >
+        <StrictMode>
+            <TimerProvider>
+                <RouterProvider router={router} />
+            </TimerProvider>
+        </StrictMode>
+    </ErrorBoundary>    
 );
