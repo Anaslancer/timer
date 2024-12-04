@@ -3,7 +3,9 @@ import { useMemo, useState } from 'react';
 import {
     closestCenter,
     DndContext,
+    DragEndEvent,
     DragOverlay,
+    DragStartEvent,
     KeyboardSensor,
     MouseSensor,
     TouchSensor,
@@ -53,17 +55,19 @@ const Home = () => {
     useSensor(KeyboardSensor, {})
   );
 
-  function handleDragStart(event: any) {
-    setActiveId(event.active.id);
+  function handleDragStart(event: DragStartEvent) {
+    setActiveId(event.active.id as string);
   }
 
-  function handleDragEnd(event: any) {
+  function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     
-    if (active.id !== over.id) {
-      const oldIndex = items.indexOf(active.id);
-      const newIndex = items.indexOf(over.id);
-      setTimersToQueue(arrayMove(timersQueue, oldIndex, newIndex));
+    if (active.id !== over?.id) {
+      const oldIndex = items.indexOf(active.id as string);
+      const newIndex = items.indexOf(over?.id as string);
+      if (timersQueue[newIndex].status === CONST.TimerStatuses.READY) {
+        setTimersToQueue(arrayMove(timersQueue, oldIndex, newIndex));
+      }
     }
 
     setActiveId(null);

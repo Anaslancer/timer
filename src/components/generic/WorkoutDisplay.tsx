@@ -1,8 +1,9 @@
 import styled from 'styled-components';
+import { useMemo } from 'react';
 import {CSS} from '@dnd-kit/utilities';
+import { useSortable } from "@dnd-kit/sortable";
 import { Timer } from '../../utils/context';
 import CONST, { TimerStatusType } from '../../utils/CONST';
-import { useSortable } from "@dnd-kit/sortable";
 
 interface StyledWorkoutDisplayProps {
   status?: TimerStatusType;
@@ -32,7 +33,7 @@ const StyledWorkoutDisplay = styled.div<StyledWorkoutDisplayProps>`
   margin-bottom: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   // transition: background-color 0.3s ease, border-color 0.3s ease;
-  cursor: ${({ visibleDraggingCursor }) => (visibleDraggingCursor ? "grabbing" : "grab")};
+  cursor: ${({ visibleDraggingCursor, draggable }) => (visibleDraggingCursor ? "grabbing" : draggable ? "grab" : "default")};
   
   @media (max-width: 480px) {
     width: 120px;
@@ -84,6 +85,8 @@ const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ transformable, timer, r
     id: timer.id
   });
 
+  const draggable = useMemo(() => !running && ((index ?? 0) > (activeIndex ?? 0)), [running, index, activeIndex]);
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: transition
@@ -106,32 +109,31 @@ const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ transformable, timer, r
     return 'Time is Up!'
   }
 
-  const onClickRemove = (e: any) => {
-    console.log("zzz e", e);
-    removeTimer();
-  }
-
   return (
     <div ref={setNodeRef} style={transformable ? style : {}}>
       {
         isDragging ? (
           <StyledWorkoutDisplay style={{opacity: 0.3}} />
         ) : (
-          <StyledWorkoutDisplay 
-            status={timer.status} 
-            resting={timer.isResting.toString()}
-            visibleDraggingCursor={visibleDraggingCursor}
-            {...attributes} {...listeners}
-          >
+          <div style={{position: 'relative'}}>
+            <StyledWorkoutDisplay 
+              status={timer.status} 
+              resting={timer.isResting.toString()}
+              visibleDraggingCursor={visibleDraggingCursor}
+              draggable={draggable}
+              {...draggable && {...attributes, ...listeners}}
+            >
+              <StyledName>{timer.mode}</StyledName>
+              { displayTime() }
+            </StyledWorkoutDisplay>
             <CloseButton 
-              disabled={running || ((index ?? 0) <= (activeIndex ?? 0))} 
-              onClick={(e) => onClickRemove(e)}
+              disabled={!draggable} 
+              onClick={removeTimer}
+              id="close-button"
             >
               X
             </CloseButton>
-            <StyledName>{timer.mode}</StyledName>
-            { displayTime() }
-          </StyledWorkoutDisplay>
+          </div>
         )
       }
     </div>
