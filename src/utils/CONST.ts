@@ -18,6 +18,7 @@ const CONST = {
     TIME: 'time',
     RUNNING: 'running',
     ACTIVE_TIMER_INDEX: 'activeTimerIndex',
+    COMPLETED_TIMERS: 'completedTimers',
   },
 } as const;
 

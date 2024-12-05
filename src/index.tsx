@@ -10,6 +10,7 @@ import { TimerProvider } from './utils/context';
 import TimersView from './views/AddTimer';
 import DocumentationView from './views/DocumentationView';
 import Home from './views/Home';
+import WorkHistory from './views/WorkHistory';
 
 function fallbackRender({ error, resetErrorBoundary }: FallbackProps) {
     // Call resetErrorBoundary() to reset the error boundary and retry the render.
@@ -77,6 +78,7 @@ const PageIndex = () => {
             <ButtonLink to="/">Workout</ButtonLink>
             <ButtonLink to="/docs">Documentation</ButtonLink>
             <ButtonLink to="/add">Add Timers</ButtonLink>
+            <ButtonLink to="/history">Work history</ButtonLink>
             <Outlet />
         </Container>
     );
@@ -99,6 +101,10 @@ const router = createBrowserRouter([
             {
                 path: '/add',
                 element: <TimersView />,
+            },
+            {
+                path: '/history',
+                element: <WorkHistory />,
             },
         ],
     },

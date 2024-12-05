@@ -71,17 +71,20 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
     const strQueue = localStorage.getItem(CONST.StorageKeys.QUEUE);
     const strTime = localStorage.getItem(CONST.StorageKeys.TIME);
     const strActiveIndex = localStorage.getItem(CONST.StorageKeys.ACTIVE_TIMER_INDEX);
+    const newQueue = strQueue ? JSON.parse(strQueue) : [];
+    const newTime = strTime ? JSON.parse(strTime) : 0;
+    const newIndex = strActiveIndex ? JSON.parse(strActiveIndex) : -1;
 
-    if (timersQueue.length === 0 && strQueue) {
-        setTimersQueue(JSON.parse(strQueue));
+    if (timersQueue.length === 0 && newQueue.length) {
+      setTimersQueue(newQueue);
     }
     
-    if (time === 0 && strTime) {
-        setTime(JSON.parse(strTime));
+    if (time === 0 && newTime !== 0) {
+      setTime(newTime);
     }
 
-    if (activeTimerIndex === -1 && strActiveIndex) {
-        setActiveTimerIndex(JSON.parse(strActiveIndex));
+    if (activeTimerIndex === -1 && newIndex !== -1) {
+      setActiveTimerIndex(newIndex);
     }
   }, [timersQueue, time, activeTimerIndex]);
 
@@ -114,6 +117,9 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
 
           if (currentTimer.round === newQueue[activeTimerIndex].passedRound) {
             newQueue[activeTimerIndex].status = CONST.TimerStatuses.COMPLETE;
+            const completedTimersStr = localStorage.getItem(CONST.StorageKeys.COMPLETED_TIMERS);
+            const completedTimers = completedTimersStr ? JSON.parse(completedTimersStr) : [];
+            localStorage.setItem(CONST.StorageKeys.COMPLETED_TIMERS, JSON.stringify([...completedTimers, newQueue[activeTimerIndex]]));
 
             if (activeTimerIndex < timersQueue.length - 1) {
               const newIndex = activeTimerIndex + 1;
@@ -224,6 +230,8 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
   // Function to remove all timers from the queue
   const removeAllTimersFromQueue = () => {
     setTimersToQueue([]);
+    setQueuePassedTime(0);
+    setQueueActiveTimerIndex(-1);
   };
 
   return (
