@@ -129,7 +129,6 @@ const Home = () => {
     setActiveId(null);
   };
 
-  // Save a timer queue to local storage
   const saveQueue = () => {
     if (timersQueue.length === 0) return;
 
@@ -152,7 +151,7 @@ const Home = () => {
         <button onClick={resetQueue} disabled={timersQueue.length === 0 || time === 0}>
           Reset Queue
         </button>
-        <button onClick={saveQueue}>
+        <button onClick={saveQueue} disabled={timersQueue.length === 0}>
           Save Queue
         </button>
       </div>
