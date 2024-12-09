@@ -4,6 +4,7 @@ import {CSS} from '@dnd-kit/utilities';
 import { useSortable } from "@dnd-kit/sortable";
 import { Timer } from '../../utils/context';
 import CONST, { TimerStatusType } from '../../utils/CONST';
+import { formattedTimeString } from '../../utils/helpers';
 
 interface StyledWorkoutDisplayProps {
   status?: TimerStatusType;
@@ -122,14 +123,14 @@ const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({
     const { status, mode, expectedTime, restTime, passedTime, isResting } = timer;
 
     if (status === CONST.TimerStatuses.COMPLETE) {
-      return mode === CONST.TimerTypes.STOPWATCH ? '1:00' : '0:00';
+      return mode === CONST.TimerTypes.STOPWATCH ? formattedTimeString(expectedTime) : '0:00';
     } else if (mode === CONST.TimerTypes.STOPWATCH) {
-      return `${Math.floor(passedTime / 60)}:${String(passedTime % 60).padStart(2, '0')}`;
+      return formattedTimeString(passedTime);
     } else if (mode === CONST.TimerTypes.COUNTDOWN || mode === CONST.TimerTypes.XY) {
-      return `${Math.floor((expectedTime - passedTime) / 60)}:${String((expectedTime - passedTime) % 60).padStart(2, '0')}`;
+      return formattedTimeString(expectedTime - passedTime);
     } else if (mode === CONST.TimerTypes.TABATA) {
       const newExpectedTime = isResting ? restTime ?? 0 : expectedTime;
-      return `${Math.floor((newExpectedTime - passedTime) / 60)}:${String((newExpectedTime - passedTime) % 60).padStart(2, '0')}`;
+      return formattedTimeString(newExpectedTime - passedTime);
     }
     
     return 'Time is Up!'

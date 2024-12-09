@@ -97,10 +97,6 @@ const Home = () => {
     setTimerIndexForEditing(index);
   }
 
-  const saveTimer = () => {
-
-  }
-
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {}),
@@ -207,7 +203,6 @@ const Home = () => {
         isOpen={isModalOpen} 
         timer={timersQueue[selectedTimerIndexForEditing]} 
         onClose={() => setModalOpen(false)} 
-        onSave={() => saveTimer()} 
       />
     </div>
   );

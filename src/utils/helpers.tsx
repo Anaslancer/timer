@@ -17,7 +17,7 @@ export const timerToString = (timer: Timer) => {
         return timer.mode + " timer (" + timeToString(time.min, time.sec) + ", idle: " + timeToString(idleTime.min, idleTime.sec) + ", " + timer.round + " time(s))";
     }
     return timer.mode + " timer";
-}
+};
 
 // Convert time to seconds, ie: 2 min 3 sec -> 123 sec
 export const timeToSec = (min: number | string, sec: number | string) => {
@@ -25,13 +25,18 @@ export const timeToSec = (min: number | string, sec: number | string) => {
     const secs = Number(sec) || 0;
 
     return mins * 60 + secs;
-}
+};
 
 // Convert seconds to minutes and seconds, ie: 123 sec -> 2 min 3 sec
 export const secToMin = (sec: number | string) => {
     const secs = Number(sec) || 0;
     return { min: Math.floor(secs / 60), sec: secs % 60 }
-}
+};
+
+export const formattedTimeString = (sec: number | string) => {
+    const secs = Number(sec) || 0;
+    return `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+};
 
 export const timeToString = (min: number | string, sec: number | string) => {
     const mins = Number(min) || 0;
@@ -46,5 +51,4 @@ export const timeToString = (min: number | string, sec: number | string) => {
     }
 
     return '0 sec';
-}
-
+};

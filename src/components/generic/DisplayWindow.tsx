@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { formattedTimeString } from '../../utils/helpers';
 
 const StyledDisplayWindow = styled.div`
   width: 160px;
@@ -30,7 +31,7 @@ const StyledDisplayWindow = styled.div`
 `;
 
 const DisplayWindow: React.FC<{ time: number }> = ({ time }) => {
-    const displayTime = time > 0 ? `${Math.floor(time / 60)}:${String(time % 60).padStart(2, '0')}` : 'Time is Up!';
+    const displayTime = time > 0 ? formattedTimeString(time) : 'Time is Up!';
 
     return <StyledDisplayWindow>{time === 0 ? '0.00' : displayTime}</StyledDisplayWindow>;
 };

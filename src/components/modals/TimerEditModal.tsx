@@ -16,10 +16,9 @@ interface TimerEditModalProps {
   isOpen: boolean;
   timer: Timer;
   onClose: () => void;
-  onSave: () => void;
 }
 
-const TimerEditModal: React.FC<TimerEditModalProps> = ({isOpen, timer, onClose, onSave}) => {
+const TimerEditModal: React.FC<TimerEditModalProps> = ({isOpen, timer, onClose}) => {
   if (!isOpen) return null;
 
   const renderBody = (timer: Timer) => {

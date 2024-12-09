@@ -22,7 +22,7 @@ const Countdown: React.FC<TimerComponentProps> = ({ timer, close }) => {
     useEffect(() => {
         if (!timer) return;
 
-        const {expectedTime, description} = timer;
+        const { expectedTime, description } = timer;
 
         if (expectedTime) {
             const {min, sec} = secToMin(expectedTime);
