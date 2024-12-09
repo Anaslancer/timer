@@ -24,6 +24,7 @@ interface TimerContextType {
   startQueue: () => void;
   stopQueue: () => void;
   resetQueue: () => void;
+  forwardQueue: () => void;
   setTimersToQueue: (timers: Timer[]) => void;
   addTimerToQueue: (timer: Timer) => void;
   removeLastTimerFromQueue: () => void;
@@ -45,6 +46,7 @@ const defaultContextValue: TimerContextType = {
   startQueue: () => {},
   stopQueue: () => {},
   resetQueue: () => {},
+  forwardQueue: () => {},
   setTimersToQueue: () => {},
   addTimerToQueue: () => {},
   removeLastTimerFromQueue: () => {},
@@ -178,6 +180,29 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
     setTimersToQueue(newTimersQueue);
   };
 
+  const forwardQueue = () => {
+    let newTimersQueue = [...timersQueue];
+    let currentQueue = timersQueue[activeTimerIndex];
+    newTimersQueue[activeTimerIndex] = { 
+      ...currentQueue, 
+      passedRound: currentQueue.round,
+      passedTime: currentQueue.restTime ? currentQueue.restTime : currentQueue.expectedTime,
+      status: CONST.TimerStatuses.COMPLETE 
+    };
+    setTimersToQueue(newTimersQueue);
+
+    const passedTime = newTimersQueue.reduce((total, timer) => 
+      total + (timer.status === CONST.TimerStatuses.COMPLETE ? (timer.expectedTime + timer.restTime) * timer.round : 0),
+    0);
+    setQueuePassedTime(passedTime);
+
+    if (activeTimerIndex < timersQueue.length - 1) {
+      setQueueActiveTimerIndex(activeTimerIndex + 1);
+    } else {
+      if (running) setQueueRunning(false);
+    }
+  };
+
   const setTimersToQueue = (queue: Timer[], needLocalStorageChange: boolean = true) => {
     setTimersQueue(queue);
     if (needLocalStorageChange) {
@@ -249,6 +274,7 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
         startQueue,
         stopQueue,
         resetQueue,
+        forwardQueue,
         setTimersToQueue,
       }}
     >

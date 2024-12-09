@@ -49,6 +49,7 @@ const Home = () => {
     startQueue, 
     stopQueue, 
     resetQueue, 
+    forwardQueue, 
     removeTimerFromQueue, 
     setTimersToQueue 
   } = useTimerContext();
@@ -143,6 +144,9 @@ const Home = () => {
         </button>
         <button onClick={stopQueue} disabled={time === 0 || time === totalTimeInSeconds}>
           {running ? 'Pause Queue' : 'Resume Queue'}
+        </button>
+        <button onClick={forwardQueue} disabled={time === 0 || time === totalTimeInSeconds}>
+          Forward
         </button>
         <button onClick={resetQueue} disabled={timersQueue.length === 0 || time === 0}>
           Reset Queue
