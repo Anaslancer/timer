@@ -13,7 +13,7 @@ export interface TimerComponentProps {
 }
   
 const Countdown: React.FC<TimerComponentProps> = ({ timer, close }) => {
-    const { timersQueue, addTimerToQueue, setTimersToQueue } = useTimerContext();
+    const { running, timersQueue, addTimerToQueue, setTimersToQueue } = useTimerContext();
 
     const [min, setMin] = useState(0);
     const [sec, setSec] = useState(0);
@@ -117,7 +117,7 @@ const Countdown: React.FC<TimerComponentProps> = ({ timer, close }) => {
                     type="text"
                 />
             </InputFieldsContainer>
-            <button onClick={timer ? saveTimer : addTimer}>{timer ? "Save" : "Add Timer"}</button>
+            <button onClick={timer ? saveTimer : addTimer} disabled={running}>{timer ? "Save" : "Add Timer"}</button>
         </TimerContainer>
     );
 };

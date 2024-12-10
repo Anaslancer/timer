@@ -17,7 +17,7 @@ const Tabata: React.FC<TimerComponentProps> = ({ timer, close }) => {
     const [restSeconds, setRestSeconds] = useState(0);
     const [description, setDescription] = useState('');
 
-    const { timersQueue, addTimerToQueue, setTimersToQueue } = useTimerContext();
+    const { running, timersQueue, addTimerToQueue, setTimersToQueue } = useTimerContext();
 
     useEffect(() => {
         if (!timer) return;
@@ -137,7 +137,7 @@ const Tabata: React.FC<TimerComponentProps> = ({ timer, close }) => {
                     type="text"
                 />
             </InputFieldsContainer>
-            <button onClick={timer ? saveTimer : addTimer}>{timer ? "Save" : "Add Timer"}</button>
+            <button onClick={timer ? saveTimer : addTimer} disabled={running}>{timer ? "Save" : "Add Timer"}</button>
         </TimerContainer>
     );
 };

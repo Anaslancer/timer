@@ -15,7 +15,7 @@ const XY: React.FC<TimerComponentProps> = ({ timer, close }) => {
     const [repititions, setRepetitions] = useState(1);
     const [description, setDescription] = useState('');
 
-    const { timersQueue, addTimerToQueue, setTimersToQueue } = useTimerContext();
+    const { running, timersQueue, addTimerToQueue, setTimersToQueue } = useTimerContext();
 
     useEffect(() => {
         if (!timer) return;
@@ -124,7 +124,7 @@ const XY: React.FC<TimerComponentProps> = ({ timer, close }) => {
                     type="text"
                 />
             </InputFieldsContainer>
-            <button onClick={timer ? saveTimer : addTimer}>{timer ? "Save" : "Add Timer"}</button>
+            <button onClick={timer ? saveTimer : addTimer} disabled={running}>{timer ? "Save" : "Add Timer"}</button>
         </TimerContainer>
     );
 };
