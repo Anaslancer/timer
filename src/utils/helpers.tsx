@@ -52,3 +52,7 @@ export const timeToString = (min: number | string, sec: number | string) => {
 
     return '0 sec';
 };
+
+export const strTo10Digits = (str: string) => {
+    return Math.max(0, Number.parseInt(str, 10) || 0);
+};

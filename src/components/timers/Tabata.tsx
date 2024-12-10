@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
+import { TimerComponentProps } from './Countdown';
 import DisplayWindow from '../generic/DisplayWindow';
 import InputField from '../generic/Input';
 import InputFieldsContainer from '../generic/InputFieldsContainer';
 import TimerContainer from '../generic/TimerContainer';
 import { Timer, useTimerContext } from '../../utils/context';
-import { secToMin, timeToSec } from '../../utils/helpers';
+import { secToMin, strTo10Digits, timeToSec } from '../../utils/helpers';
 import CONST from '../../utils/CONST';
-import { TimerComponentProps } from './Countdown';
 
 //Manages state
 const Tabata: React.FC<TimerComponentProps> = ({ timer, close }) => {
@@ -42,15 +42,13 @@ const Tabata: React.FC<TimerComponentProps> = ({ timer, close }) => {
     }, [timer]);
 
     const handleMinuteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = Math.max(0, Number.parseInt(e.target.value, 10) || 0);
-        setMinutes(value);
+        setMinutes(strTo10Digits(e.target.value));
     };
 
     //sets the seconds value to the set time.
     const handleSecondChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let value = Math.max(0, Number.parseInt(e.target.value, 10) || 0);
-        value = value > 59 ? 59 : value;
-        setSeconds(value);
+        const seconds = strTo10Digits(e.target.value);
+        setSeconds(seconds > 59 ? 59 : seconds);
     };
 
     //sets the repetition value.

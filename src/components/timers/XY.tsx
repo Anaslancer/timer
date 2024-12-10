@@ -6,7 +6,7 @@ import TimerContainer from '../generic/TimerContainer';
 import { Timer, useTimerContext } from '../../utils/context';
 import { TimerComponentProps } from './Countdown';
 import CONST from '../../utils/CONST';
-import { secToMin, timeToSec } from '../../utils/helpers';
+import { secToMin, strTo10Digits, timeToSec } from '../../utils/helpers';
 
 //sets the states for variables that need to be followed
 const XY: React.FC<TimerComponentProps> = ({ timer, close }) => {
@@ -34,14 +34,12 @@ const XY: React.FC<TimerComponentProps> = ({ timer, close }) => {
     }, [timer]);
 
     const handleMinuteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = Math.max(0, Number.parseInt(e.target.value, 10) || 0);
-        setMinutes(value);
+        setMinutes(strTo10Digits(e.target.value));
     };
 
     const handleSecondChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let value = Math.max(0, Number.parseInt(e.target.value, 10) || 0);
-        value = value > 59 ? 59 : value;
-        setSeconds(value);
+        const seconds = strTo10Digits(e.target.value);
+        setSeconds(seconds > 59 ? 59 : seconds);
     };
 
     //sets the repetition value from the input.

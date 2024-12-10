@@ -7,7 +7,7 @@ import InputField from '../generic/Input';
 import { Timer, useTimerContext } from '../../utils/context';
 import CONST from '../../utils/CONST';
 import { TimerComponentProps } from './Countdown';
-import { secToMin, timeToSec } from '../../utils/helpers';
+import { secToMin, strTo10Digits, timeToSec } from '../../utils/helpers';
 
 const Stopwatch: React.FC<TimerComponentProps> = ({ timer, close }) => {
     const { running, timersQueue, addTimerToQueue, setTimersToQueue } = useTimerContext();
@@ -32,15 +32,13 @@ const Stopwatch: React.FC<TimerComponentProps> = ({ timer, close }) => {
 
     // Handle minute change
     const handleMinuteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = Math.max(0, Number.parseInt(e.target.value, 10) || 0);
-        setMin(value);
+        setMin(strTo10Digits(e.target.value));
     };
 
     // Handle second change (restricting to 0-59)
     const handleSecondChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let value = Math.max(0, Number.parseInt(e.target.value, 10) || 0);
-        value = value > 59 ? 59 : value;
-        setSec(value);
+        const seconds = strTo10Digits(e.target.value);
+        setSec(seconds > 59 ? 59 : seconds);
     };
 
     const addTimer = () => {
