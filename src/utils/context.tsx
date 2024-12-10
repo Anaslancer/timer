@@ -176,6 +176,7 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
         timer.passedRound = 0;
         timer.passedTime = 0;
         timer.status = CONST.TimerStatuses.READY;
+        timer.isResting = false;
     });
     setTimersToQueue(newTimersQueue);
   };
@@ -189,6 +190,7 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
       passedTime: currentQueue.restTime ? currentQueue.restTime : currentQueue.expectedTime,
       status: CONST.TimerStatuses.COMPLETE 
     };
+    if (activeTimerIndex < timersQueue.length - 1) newTimersQueue[activeTimerIndex + 1].status = CONST.TimerStatuses.PLAY;
     setTimersToQueue(newTimersQueue);
 
     const passedTime = newTimersQueue.reduce((total, timer) => 
