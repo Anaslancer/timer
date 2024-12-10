@@ -193,9 +193,9 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
     if (activeTimerIndex < timersQueue.length - 1) newTimersQueue[activeTimerIndex + 1].status = CONST.TimerStatuses.PLAY;
     setTimersToQueue(newTimersQueue);
 
-    const passedTime = newTimersQueue.reduce((total, timer) => 
-      total + (timer.status === CONST.TimerStatuses.COMPLETE ? (timer.expectedTime + timer.restTime) * timer.round : 0),
-    0);
+    const passedTime = newTimersQueue
+      .filter(({ status }: Timer) => status === CONST.TimerStatuses.COMPLETE)
+      .reduce((total, timer) => total + (timer.expectedTime + timer.restTime) * timer.round, 0);
     setQueuePassedTime(passedTime);
 
     if (activeTimerIndex < timersQueue.length - 1) {
