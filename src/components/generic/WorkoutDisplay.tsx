@@ -83,7 +83,7 @@ const StyledDescription = styled.div`
 interface WorkoutDisplayProps {
   transformable?: boolean,
   timer: Timer;
-  running: boolean;
+  running?: boolean;
   index?: number;
   activeIndex?: number;
   visibleDraggingCursor?: boolean;
@@ -94,7 +94,7 @@ interface WorkoutDisplayProps {
 const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ 
   transformable, 
   timer, 
-  running, 
+  running = false, 
   index, 
   activeIndex, 
   visibleDraggingCursor,
@@ -112,7 +112,7 @@ const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({
     id: timer.id
   });
 
-  const draggable = useMemo(() => !running && ((index ?? 0) > (activeIndex ?? 0)), [running, index, activeIndex]);
+  const draggable = !running && ((index ?? 0) > (activeIndex ?? 0));
 
   const style = {
     transform: CSS.Transform.toString(transform),

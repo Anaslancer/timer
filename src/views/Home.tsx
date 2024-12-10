@@ -19,12 +19,11 @@ import TimerEditModal from '../components/modals/TimerEditModal';
 import { Timer, useTimerContext } from '../utils/context';
 import CONST from '../utils/CONST';
 
-const StyledQueueContainer = styled.div`
+export const StyledQueueContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 40px;
-  margin-top: 40px;
 `;
 
 const defaultTimer: Timer = {
@@ -157,7 +156,7 @@ const Home = () => {
       </div>
       <div>Total Time: {totalTimeInSeconds} seconds</div>
       <div>Passed Time: {time} seconds</div>
-      <div style={{ width: '90%', height: '12px', borderRadius: '6px', backgroundColor: '#e0e0e0', margin: 'auto', position: 'relative', marginTop: '12px' }}>
+      <div style={{ width: '90%', height: '12px', borderRadius: '6px', backgroundColor: '#e0e0e0', position: 'relative', margin: '12px auto 32px' }}>
         <div
           style={{
             position: 'absolute',
