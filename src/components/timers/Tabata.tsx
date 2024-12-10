@@ -5,7 +5,7 @@ import InputField from '../generic/Input';
 import InputFieldsContainer from '../generic/InputFieldsContainer';
 import TimerContainer from '../generic/TimerContainer';
 import { Timer, useTimerContext } from '../../utils/context';
-import { secToMin, strTo10Digits, timeToSec } from '../../utils/helpers';
+import { replaceTimerInQueue, secToMin, strTo10Digits, timeToSec } from '../../utils/helpers';
 import CONST from '../../utils/CONST';
 
 //Manages state
@@ -92,11 +92,7 @@ const Tabata: React.FC<TimerComponentProps> = ({ timer, close }) => {
             description: description,
         }
 
-        const newTimersQueue = [...timersQueue];
-        const index = timersQueue.findIndex((t) => t.id === timer.id);
-        newTimersQueue[index] = newTimer;
-
-        setTimersToQueue(newTimersQueue);
+        setTimersToQueue(replaceTimerInQueue(timersQueue, newTimer));
         if (close) close();
     }
 

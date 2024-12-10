@@ -1,5 +1,5 @@
 import { Timer } from './context';
-import CONST from './CONST';
+import CONST, { TimerStatusType } from './CONST';
 
 interface MinSec {
     min: number,
@@ -55,4 +55,74 @@ export const timeToString = (min: number | string, sec: number | string) => {
 
 export const strTo10Digits = (str: string) => {
     return Math.max(0, Number.parseInt(str, 10) || 0);
+};
+
+export const setTimerStatusAsComplete = (timer: Timer) => {
+    timer.status = CONST.TimerStatuses.COMPLETE;
+};
+
+export const setTimerStatusAsPlay = (timer: Timer) => {
+    timer.status = CONST.TimerStatuses.PLAY;
+};
+
+export const setTimerStatusAsPause = (timer: Timer) => {
+    timer.status = CONST.TimerStatuses.PAUSE;
+};
+
+export const setTimerStatusAsReady = (timer: Timer) => {
+    timer.status = CONST.TimerStatuses.READY;
+};
+
+export const increaseTimerPassedTime = (timer: Timer) => {
+    const expectedTime = timer.isResting ? timer.restTime : timer.expectedTime;
+
+    if (timer.passedTime < expectedTime) {
+        timer.passedTime ++;
+    }
+};
+
+export const resetTimerPassedTime = (timer: Timer) => {
+    timer.passedTime = 0;
+};
+
+export const increaseTimerPassedRound = (timer: Timer) => {
+    timer.passedRound ++;
+};
+
+export const resetTimerPassedRound = (timer: Timer) => {
+    timer.passedRound = 0;
+};
+
+export const toggleTimerIsResting = (timer: Timer) => {
+    timer.isResting = !timer.isResting;
+};
+
+export const saveTimerToLocalStorage = (timer: Timer) => {
+    const completedTimersStr = localStorage.getItem(CONST.StorageKeys.COMPLETED_TIMERS);
+    let completedTimers = completedTimersStr ? JSON.parse(completedTimersStr) : [];
+    completedTimers.push(timer);
+    localStorage.setItem(CONST.StorageKeys.COMPLETED_TIMERS, JSON.stringify(completedTimers));
+};
+
+export const updateTimerPassedTime = (timer: Timer, passedTime: number) => {
+    timer.passedTime = passedTime;
+};
+
+export const updateTimerPassedRound = (timer: Timer, passedRound: number) => {
+    timer.passedRound = passedRound;
+};
+
+export const updateTimerIsResting = (timer: Timer, isResting: boolean) => {
+    timer.isResting = isResting;
+};
+
+export const completedTimers = (timers: Timer[]): Timer[] => {
+    return timers.filter(({ status }: Timer) => status === CONST.TimerStatuses.COMPLETE);
+};
+
+export const replaceTimerInQueue = (timers:Timer[], newTimer: Timer) => {
+    const newTimersQueue = [...timers];
+    const index = timers.findIndex((t) => t.id === newTimer.id);
+    newTimersQueue[index] = newTimer;
+    return newTimersQueue;
 };

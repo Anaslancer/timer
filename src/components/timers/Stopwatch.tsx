@@ -7,7 +7,7 @@ import InputField from '../generic/Input';
 import { Timer, useTimerContext } from '../../utils/context';
 import CONST from '../../utils/CONST';
 import { TimerComponentProps } from './Countdown';
-import { secToMin, strTo10Digits, timeToSec } from '../../utils/helpers';
+import { replaceTimerInQueue, secToMin, strTo10Digits, timeToSec } from '../../utils/helpers';
 
 const Stopwatch: React.FC<TimerComponentProps> = ({ timer, close }) => {
     const { running, timersQueue, addTimerToQueue, setTimersToQueue } = useTimerContext();
@@ -62,18 +62,13 @@ const Stopwatch: React.FC<TimerComponentProps> = ({ timer, close }) => {
     }
 
     const saveTimer = () => {
-        if (!timer) return;
+        const activeTime = timeToSec(min, sec);
 
-        const newTimer: Timer = {
-            ...timer,
-            description: description,
-        }
+        if (!activeTime || !timer) return;
 
-        const newTimersQueue = [...timersQueue];
-        const index = timersQueue.findIndex((t) => t.id === timer.id);
-        newTimersQueue[index] = newTimer;
+        const newTimer: Timer = { ...timer, expectedTime: activeTime, description: description }
+        setTimersToQueue(replaceTimerInQueue(timersQueue, newTimer));
 
-        setTimersToQueue(newTimersQueue);
         if (close) close();
     }
 

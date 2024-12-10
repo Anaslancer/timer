@@ -47,7 +47,7 @@ const WorkHistory = () => {
         {
           completedTimers ? (
             completedTimers.map((timer, index) => (
-              <Row key={timer.id} odd={(index % 2 !== 0).toString()}>
+              <Row key={index} odd={(index % 2 !== 0).toString()}>
                 <Cell>{index + 1}</Cell>
                 <Cell>{timerToString(timer)}</Cell>
                 <Cell>{timer.description}</Cell>

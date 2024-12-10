@@ -6,7 +6,7 @@ import TimerContainer from '../generic/TimerContainer';
 import { Timer, useTimerContext } from '../../utils/context';
 import { TimerComponentProps } from './Countdown';
 import CONST from '../../utils/CONST';
-import { secToMin, strTo10Digits, timeToSec } from '../../utils/helpers';
+import { replaceTimerInQueue, secToMin, strTo10Digits, timeToSec } from '../../utils/helpers';
 
 //sets the states for variables that need to be followed
 const XY: React.FC<TimerComponentProps> = ({ timer, close }) => {
@@ -81,11 +81,7 @@ const XY: React.FC<TimerComponentProps> = ({ timer, close }) => {
             description: description,
         }
 
-        const newTimersQueue = [...timersQueue];
-        const index = timersQueue.findIndex((t) => t.id === timer.id);
-        newTimersQueue[index] = newTimer;
-
-        setTimersToQueue(newTimersQueue);
+        setTimersToQueue(replaceTimerInQueue(timersQueue, newTimer));
         if (close) close();
     }
 

@@ -1,5 +1,20 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import CONST, { TimerType, TimerStatusType } from './CONST';
+import { 
+  increaseTimerPassedRound, 
+  increaseTimerPassedTime, 
+  resetTimerPassedRound, 
+  resetTimerPassedTime, 
+  saveTimerToLocalStorage, 
+  setTimerStatusAsComplete, 
+  setTimerStatusAsPlay, 
+  setTimerStatusAsReady,
+  toggleTimerIsResting, 
+  updateTimerPassedRound, 
+  updateTimerIsResting, 
+  updateTimerPassedTime,
+  completedTimers, 
+} from './helpers';
 
 export interface Timer {
   id: string;
@@ -94,40 +109,34 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
   useEffect(() => {
     let timer = setInterval(() => {
       if (running && activeTimerIndex !== -1) {
-        // setTime(prevQueue => prevQueue + 1);
         setQueuePassedTime(time + 1);
         let newQueue = [...timersQueue];
-        const currentTimer = timersQueue[activeTimerIndex];
+        let currentQueue = newQueue[activeTimerIndex];
 
-        const expectedTime = currentTimer.isResting ? currentTimer.restTime : currentTimer.expectedTime;
+        increaseTimerPassedTime(currentQueue);
 
-        if (currentTimer.passedTime < expectedTime) {
-          newQueue[activeTimerIndex].passedTime = currentTimer.passedTime + 1;
-        }
+        if (currentQueue.passedTime === (currentQueue.isResting ? currentQueue.restTime : currentQueue.expectedTime)) {
+          resetTimerPassedTime(currentQueue);
 
-        if (currentTimer.passedTime === expectedTime) {
-          newQueue[activeTimerIndex].passedTime = 0;
-          if (currentTimer.mode === CONST.TimerTypes.TABATA) {
-            if (currentTimer.isResting) {
-              newQueue[activeTimerIndex].passedRound = currentTimer.passedRound + 1;
+          if (currentQueue.mode === CONST.TimerTypes.TABATA) {
+            if (currentQueue.isResting) {
+              increaseTimerPassedRound(currentQueue);
             }
 
-            currentTimer.isResting = !currentTimer.isResting;
+            toggleTimerIsResting(currentQueue);
           } else {
-            newQueue[activeTimerIndex].passedRound = currentTimer.passedRound + 1;
+            increaseTimerPassedRound(currentQueue);
           }
 
-          if (currentTimer.round === newQueue[activeTimerIndex].passedRound) {
-            newQueue[activeTimerIndex].status = CONST.TimerStatuses.COMPLETE;
-            const completedTimersStr = localStorage.getItem(CONST.StorageKeys.COMPLETED_TIMERS);
-            const completedTimers = completedTimersStr ? JSON.parse(completedTimersStr) : [];
-            localStorage.setItem(CONST.StorageKeys.COMPLETED_TIMERS, JSON.stringify([...completedTimers, newQueue[activeTimerIndex]]));
+          if (currentQueue.round === currentQueue.passedRound) {
+            setTimerStatusAsComplete(currentQueue);
+            saveTimerToLocalStorage(currentQueue);
 
             if (activeTimerIndex < timersQueue.length - 1) {
-              const newIndex = activeTimerIndex + 1;
-              setQueueActiveTimerIndex(newIndex);
+              setQueueActiveTimerIndex(activeTimerIndex + 1);
+              setTimerStatusAsPlay(newQueue[activeTimerIndex + 1]);
+
               if (!running) setQueueRunning(true);
-              newQueue[newIndex].status = CONST.TimerStatuses.PLAY;
             } else {
               if (running) setQueueRunning(false);
             }
@@ -151,7 +160,7 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
       setQueuePassedTime(0);
 
       let newTimersQueue = [...timersQueue];
-      newTimersQueue[0] = { ...timersQueue[0], status: CONST.TimerStatuses.PLAY };
+      setTimerStatusAsPlay(newTimersQueue[0]);
       setTimersToQueue(newTimersQueue);
     } else {
       setErrorMessage('No timers in the queue to start!');
@@ -171,30 +180,31 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
     setQueueRunning(false);
     setQueueActiveTimerIndex(-1);
 
-    let newTimersQueue = [...timersQueue];
-    newTimersQueue.forEach(timer => {
-        timer.passedRound = 0;
-        timer.passedTime = 0;
-        timer.status = CONST.TimerStatuses.READY;
-        timer.isResting = false;
+    let newTimersQueue: Timer[] = [];
+    timersQueue.forEach(timer => {
+      resetTimerPassedTime(timer);
+      resetTimerPassedRound(timer);
+      setTimerStatusAsReady(timer);
+      updateTimerIsResting(timer, false);
+      newTimersQueue.push(timer);
     });
     setTimersToQueue(newTimersQueue);
   };
 
   const forwardQueue = () => {
     let newTimersQueue = [...timersQueue];
-    let currentQueue = timersQueue[activeTimerIndex];
-    newTimersQueue[activeTimerIndex] = { 
-      ...currentQueue, 
-      passedRound: currentQueue.round,
-      passedTime: currentQueue.restTime ? currentQueue.restTime : currentQueue.expectedTime,
-      status: CONST.TimerStatuses.COMPLETE 
-    };
-    if (activeTimerIndex < timersQueue.length - 1) newTimersQueue[activeTimerIndex + 1].status = CONST.TimerStatuses.PLAY;
+    const currentQueue = newTimersQueue[activeTimerIndex];
+    updateTimerPassedRound(currentQueue, currentQueue.round);
+    updateTimerPassedTime(currentQueue, currentQueue.restTime ? currentQueue.restTime : currentQueue.expectedTime);
+    setTimerStatusAsComplete(currentQueue);
+
+    if (activeTimerIndex < timersQueue.length - 1) {
+      setTimerStatusAsPlay(newTimersQueue[activeTimerIndex + 1]);
+    }
+
     setTimersToQueue(newTimersQueue);
 
-    const passedTime = newTimersQueue
-      .filter(({ status }: Timer) => status === CONST.TimerStatuses.COMPLETE)
+    const passedTime = completedTimers(newTimersQueue)
       .reduce((total, timer) => total + (timer.expectedTime + timer.restTime) * timer.round, 0);
     setQueuePassedTime(passedTime);
 
@@ -205,32 +215,24 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
     }
   };
 
-  const setTimersToQueue = (queue: Timer[], needLocalStorageChange: boolean = true) => {
+  const setTimersToQueue = (queue: Timer[]) => {
     setTimersQueue(queue);
-    if (needLocalStorageChange) {
-      localStorage.setItem(CONST.StorageKeys.QUEUE, JSON.stringify(queue));
-    }
+    localStorage.setItem(CONST.StorageKeys.QUEUE, JSON.stringify(queue));
   };
 
-  const setQueueRunning = (running: boolean, needLocalStorageChange: boolean = true) => {
+  const setQueueRunning = (running: boolean) => {
     setRunning(running);
-    if (needLocalStorageChange) {
-      localStorage.setItem(CONST.StorageKeys.RUNNING, JSON.stringify(running));
-    }
+    localStorage.setItem(CONST.StorageKeys.RUNNING, JSON.stringify(running));
   };
 
-  const setQueueActiveTimerIndex = (index: number, needLocalStorageChange: boolean = true) => {
+  const setQueueActiveTimerIndex = (index: number) => {
     setActiveTimerIndex(index);
-    if (needLocalStorageChange) {
-      localStorage.setItem(CONST.StorageKeys.ACTIVE_TIMER_INDEX, JSON.stringify(index));
-    }
+    localStorage.setItem(CONST.StorageKeys.ACTIVE_TIMER_INDEX, JSON.stringify(index));
   };
 
-  const setQueuePassedTime = (time: number, needLocalStorageChange: boolean = true) => {
+  const setQueuePassedTime = (time: number) => {
     setTime(time);
-    if (needLocalStorageChange) {
-      localStorage.setItem(CONST.StorageKeys.TIME, JSON.stringify(time));
-    }
+    localStorage.setItem(CONST.StorageKeys.TIME, JSON.stringify(time));
   };
 
   // Function to save the values that are added

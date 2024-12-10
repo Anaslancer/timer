@@ -5,7 +5,7 @@ import InputFieldsContainer from '../generic/InputFieldsContainer';
 import TimerContainer from '../generic/TimerContainer';
 import { Timer, useTimerContext } from '../../utils/context';
 import CONST from '../../utils/CONST';
-import { secToMin, strTo10Digits, timeToSec } from '../../utils/helpers';
+import { replaceTimerInQueue, secToMin, strTo10Digits, timeToSec } from '../../utils/helpers';
 
 export interface TimerComponentProps {
     timer?: Timer;
@@ -74,17 +74,9 @@ const Countdown: React.FC<TimerComponentProps> = ({ timer, close }) => {
 
         if (!activeTime || !timer) return;
 
-        const newTimer: Timer = {
-            ...timer,
-            expectedTime: activeTime,
-            description: description,
-        }
+        const newTimer: Timer = { ...timer, expectedTime: activeTime, description: description }
+        setTimersToQueue(replaceTimerInQueue(timersQueue, newTimer));
 
-        const newTimersQueue = [...timersQueue];
-        const index = timersQueue.findIndex((t) => t.id === timer.id);
-        newTimersQueue[index] = newTimer;
-
-        setTimersToQueue(newTimersQueue);
         if (close) close();
     }
 
