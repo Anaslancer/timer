@@ -1,5 +1,5 @@
 import { Timer } from './context';
-import CONST, { TimerStatusType } from './CONST';
+import CONST from './CONST';
 
 interface MinSec {
     min: number,

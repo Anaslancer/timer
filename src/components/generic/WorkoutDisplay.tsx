@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import { useMemo } from 'react';
 import {CSS} from '@dnd-kit/utilities';
 import { useSortable } from "@dnd-kit/sortable";
 import { Timer } from '../../utils/context';
